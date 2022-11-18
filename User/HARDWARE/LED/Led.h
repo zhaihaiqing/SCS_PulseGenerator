@@ -69,11 +69,10 @@
 #define LED_SN74HC240_OFF	0
 
 #define pLEDPOWER			PBout(6)		//前面板指示灯，用户使用
-#if(PCB_VERSION == PCB_V14)
-	#define pLEDOUTPUT		PBout(8)
-#elif(PCB_VERSION >= PCB_V15)
-	#define pLEDOUTPUT		PAout(0)
-#endif
+
+
+#define pLEDOUTPUT		PAout(0)
+
 #define pLEDOVERLOAD		PBout(7)
 
 #define pLEDRUN				PEout(0)		//按键指示灯
