@@ -284,7 +284,7 @@ void TriggerEx_Init(void)
 	/* 配置EXTI_Line0 */
 	EXTI_InitStructure.EXTI_Line = EXTI_Line0;//LINE0
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;//中断事件
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; //上升沿触发 
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising_Falling; //上升和下降沿均触发，上升沿输出波形，下降沿输出0 
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;//使能LINE0
 	EXTI_Init(&EXTI_InitStructure);//配置
 	
@@ -294,6 +294,8 @@ void TriggerEx_Init(void)
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;//子优先级2
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);//配置
+	
+	
 	
 	
 		
