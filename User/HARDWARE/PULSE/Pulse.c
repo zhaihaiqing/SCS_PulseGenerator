@@ -27,7 +27,7 @@ static void TIMx_IRQHandler_Call(uint8_t do_timx)
 		if(DOState.Status[do_timx] == DOSTATE_STATUS_RUNNING)
 		{
 			TimerRun[do_timx].PulseNum++;
-			if(TimerRun[do_timx].PulseNum >= pPwmArrayParam[do_timx]->Pwm[TimerRun[do_timx].Index].PwmNum)
+			if((TimerRun[do_timx].PulseNum >= pPwmArrayParam[do_timx]->Pwm[TimerRun[do_timx].Index].PwmNum)  &&  (UserOperation.fMode != UO_MODE_FREERUN)  )
 			{
 				//TimerRun[do_timx].Index = (TimerRun[do_timx].Index + 1) % pPwmArrayParam[do_timx]->VarietyNum;
 				
@@ -94,10 +94,6 @@ static void TIMx_IRQHandler_Call(uint8_t do_timx)
 				SW_CV_OUTPUT = 0;   //关闭输出
 			}
 		}
-//		else if(DOState.Status[do_timx] == DOSTATE_STATUS_PAUSE)
-//		{
-//			;									//无需处理
-//		}
 	}
 	*Tbl_TIM_SR[do_timx] = 0;
 }

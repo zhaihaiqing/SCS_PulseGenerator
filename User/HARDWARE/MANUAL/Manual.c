@@ -611,10 +611,6 @@ void Manual_Poll(void)
 					{
 						Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
 					}
-					#if(PCB_VERSION == PCB_V14)
-						TIM2->CR1    |= 0X01;
-						T2.OutputCnt = 0;
-					#endif
 						
 					pLEDPAUSE = LED_SN74HC240_OFF;
 					DOState.Status[DO_TIM4] = DOSTATE_STATUS_COMPLETE;
@@ -649,12 +645,7 @@ void Manual_Poll(void)
 				else if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 				{
 					Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
-										
-				#if(PCB_VERSION == PCB_V14)
-					TIM2->CR1    |= 0X01;
-					T2.OutputCnt = 0;
-				#endif
-					
+															
 					pLEDPAUSE = LED_SN74HC240_OFF;
 
 					Process_COMMAND_STOP(DO_TIM4);
@@ -670,9 +661,6 @@ void Manual_Poll(void)
 				
 				if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_RUNNING)
 				{
-				#if(PCB_VERSION == PCB_V14)
-					TIM2->CR1    &= ~0X01;
-				#endif
 					EXTI->IMR    &= ~(1<<0);
 					
 					Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
@@ -682,11 +670,7 @@ void Manual_Poll(void)
 				}
 				else if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_PAUSE)
 				{					
-				#if(PCB_VERSION == PCB_V14)
-					TIM2->CR1    |= 0X01;
-				#endif
 					EXTI->IMR    |= 1<<0;
-					
 					
 					//Delay_ms(15);		//等待继电器闭合
 					//SW_CV_OUTPUT = 1;   //打开输出
