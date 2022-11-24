@@ -586,8 +586,15 @@ void Manual_Poll(void)
 		j = (keycode - 1) % 3;																					//键状态，0--按下 1--弹起 2--长按
 		if(j == 0 && i < KEY_NUMBER)
 		{
-			/*	1.输出控制部分	*/
-			if(i == BTN_RUN)														//开始运行
+/*******************************************************************	
+*
+*			1.输出控制部分按键	包含运行、暂停、翻转、单次输出键
+*
+*
+********************************************************************
+*/
+			
+			if(i == BTN_RUN)													//按下运行键
 			{		
 		
 				if(UserOperation.fMode == UO_MODE_SINGLE)														//[V111]，修改输出逻辑，SINGLE模式下，RUN按键无效
@@ -652,7 +659,7 @@ void Manual_Poll(void)
 					//SW_CV_OUTPUT = 0;   //关闭输出
 				}
 			}
-			else if(i == BTN_PAUSE)															//暂停刺激
+			else if(i == BTN_PAUSE)															//按下暂停键
 			{
 				UserOperation.fParamType = UO_PARAM_NONE;
 				ParamEdit_RefreshPre();
@@ -682,7 +689,7 @@ void Manual_Poll(void)
 					;
 				}
 			}
-			else if(i == BTN_PHASE)																				//翻转输出控制
+			else if(i == BTN_PHASE)															//按下翻转键
 			{
 				if(UserOperation.bPhase == UO_PHASE_UNIPHASE)
 				{
@@ -706,7 +713,7 @@ void Manual_Poll(void)
 
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			else if(i == BTN_SINGLETRIGGER)													//单次输出
+			else if(i == BTN_SINGLETRIGGER)													//按下单次输出键
 			{
 				UserOperation.fParamType = UO_PARAM_NONE;
 				ParamEdit_RefreshPre();
@@ -726,9 +733,14 @@ void Manual_Poll(void)
 					LedShortOn.fSinggleTrigger = LEDSHORTON_BEGIN;
 				}
 			}
-			
-			/*	2.输出属性部分	*/
-			else if(i == BTN_VC)																				//电压/电流切换控制
+/*******************************************************************	
+*
+*			2.输出属性部分按键	包含电压电流切换、单位切换
+*
+*
+********************************************************************
+*/			
+			else if(i == BTN_VC)															//按下电压电流切换键
 			{
 				if(DOState.Config & (1 << DO_TIM4))																//[V189],修复切换模式VC时，若处于RUN状态，不会自动停止的bug
 				{
@@ -829,7 +841,7 @@ void Manual_Poll(void)
 				
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			else if(i == BTN_UNITSWITCH && UserOperation.fParamType != UO_PARAM_NONE)							//单位切换控制
+			else if(i == BTN_UNITSWITCH && UserOperation.fParamType != UO_PARAM_NONE)						//按下单位切换键	
 			{
 				LedShortOn.fUnitSwitch = LEDSHORTON_BEGIN;
 				
@@ -837,9 +849,14 @@ void Manual_Poll(void)
 				
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			
-			/*	3.模式控制部分	*/
-			else if(i == BTN_SINGLE && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)						//输出过程不允许修改输出模式
+/*******************************************************************	
+*
+*			3.模式控制按键	包含4个模式切换按键
+*
+*
+********************************************************************
+*/				
+			else if(i == BTN_SINGLE && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)					//按下单脉冲模式键			
 			{				
 				Led_ParamPartOff();
 				
@@ -870,7 +887,7 @@ void Manual_Poll(void)
 				
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			else if(i == BTN_TRAIN && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)
+			else if(i == BTN_TRAIN && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)						//按下按时长运行模式键
 			{				
 				Led_ParamPartOff();
 				
@@ -901,7 +918,7 @@ void Manual_Poll(void)
 				
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			else if(i == BTN_FREERUN && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)
+			else if(i == BTN_FREERUN && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)					//按下持续运行模式键
 			{				
 				Led_ParamPartOff();
 				
@@ -932,7 +949,7 @@ void Manual_Poll(void)
 				
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			else if(i == BTN_EXTBNC && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)
+			else if(i == BTN_EXTBNC && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)					//按下外部触发模式键
 			{				
 				Led_ParamPartOff();
 				
@@ -963,9 +980,14 @@ void Manual_Poll(void)
 				
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			
-			/*	4.参数类型部分	*/
-			else if(i == BTN_PULSE)
+/*******************************************************************	
+*
+*			4.参数类型按键	包含设置幅值、脉宽、频率、运行时长
+*
+*
+********************************************************************
+*/			
+			else if(i == BTN_PULSE)																				//按下设置脉宽键
 			{								
 				if(UserOperation.fMode == UO_MODE_SINGLE || UserOperation.fMode == UO_MODE_FREERUN || UserOperation.fMode == UO_MODE_TRAIN)
 				{
@@ -1008,7 +1030,7 @@ void Manual_Poll(void)
 					ParamEdit_RefreshPre();
 				}
 			}
-			else if(i == BTN_AMPL)
+			else if(i == BTN_AMPL)																				//按下设置幅值键
 			{
 				Led_ParamPartOff();
 				
@@ -1048,7 +1070,7 @@ void Manual_Poll(void)
 				
 				ParamEdit_RefreshPre();
 			}
-			else if(i == BTN_FREQ)
+			else if(i == BTN_FREQ)																		//按下设置频率键
 			{				
 				if(UserOperation.fMode == UO_MODE_FREERUN || UserOperation.fMode == UO_MODE_TRAIN)
 				{
@@ -1091,7 +1113,7 @@ void Manual_Poll(void)
 					ParamEdit_RefreshPre();
 				}
 			}
-			else if(i == BTN_DURATION)
+			else if(i == BTN_DURATION)																	//按下设置运行时长键
 			{				
 				if(UserOperation.fMode == UO_MODE_TRAIN)
 				{
@@ -1134,64 +1156,69 @@ void Manual_Poll(void)
 					ParamEdit_RefreshPre();
 				}
 			}
-			
-			/*	5.数值输入部分	*/
-			else if(i == BTN_0)
+/*******************************************************************	
+*
+*			5.数值输入按键	包含设置0-9数字、小数点、enter、回退、清除
+*
+*
+********************************************************************
+*/				
+			else if(i == BTN_0)											//按下0键
 			{
 				SettingInfo_Modify(KBD_INPUT_0);
 			}
-			else if(i == BTN_1)
+			else if(i == BTN_1)											//按下1键
 			{
 				SettingInfo_Modify(KBD_INPUT_1);
 			}
-			else if(i == BTN_2)
+			else if(i == BTN_2)											//按下2键
 			{
 				SettingInfo_Modify(KBD_INPUT_2);
 			}
-			else if(i == BTN_3)
+			else if(i == BTN_3)											//按下3键
 			{
 				SettingInfo_Modify(KBD_INPUT_3);
 			}
-			else if(i == BTN_4)
+			else if(i == BTN_4)											//按下4键
 			{
 				SettingInfo_Modify(KBD_INPUT_4);
 			}
-			else if(i == BTN_5)
+			else if(i == BTN_5)											//按下5键
 			{
 				SettingInfo_Modify(KBD_INPUT_5);
 			}
-			else if(i == BTN_6)
+			else if(i == BTN_6)											//按下6键
 			{
 				SettingInfo_Modify(KBD_INPUT_6);
 			}
-			else if(i == BTN_7)
+			else if(i == BTN_7)											//按下7键
 			{
 				SettingInfo_Modify(KBD_INPUT_7);
 			}
-			else if(i == BTN_8)
+			else if(i == BTN_8)											//按下8键
 			{
 				SettingInfo_Modify(KBD_INPUT_8);
 			}
-			else if(i == BTN_9)
+			else if(i == BTN_9)											//按下9键
 			{
 				SettingInfo_Modify(KBD_INPUT_9);
 			}
-			else if(i == BTN_BACKSPACE)
+			else if(i == BTN_BACKSPACE)									//按下回退键
 			{
 				SettingInfo_Modify(KBD_INPUT_BACKSPACE);
 			}
-			else if(i == BTN_CLEAR)
+			else if(i == BTN_CLEAR)										//按下清除键
 			{
 				SettingInfo_Modify(KBD_INPUT_CLEAR);
 			}
-			else if(i == BTN_DOT)
+			else if(i == BTN_DOT)										//按下小数点键
 			{
 				if(UserOperation.Modify.NumAfterDot == 0)
 				{
 					UserOperation.Modify.NumAfterDot = 1;
 				}
 			}
-			else if(i == BTN_ENTER)
+			else if(i == BTN_ENTER)										//按下enter键
 			{
 				Led_ParamPartOff();
 				

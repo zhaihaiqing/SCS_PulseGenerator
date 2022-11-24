@@ -78,6 +78,10 @@
 #define BTN_BACKSPACE		0x07
 #define BTN_CLEAR			0x1E
 
+
+
+
+
 /* FP:	根据应用程序各按键的功能自行重命名按键宏，便于记忆与调用 */
 #define KEY_DOWN_K0				KEY_0_DOWN
 #define KEY_UP_K0				KEY_0_UP
