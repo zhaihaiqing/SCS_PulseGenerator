@@ -139,9 +139,14 @@ __packed typedef struct SPULSECONF					//波形配置参数结构体
 }sPulseConf_t;
 extern sPulseConf_t PulseConf;
 
-void Process_COMMAND_START(uint8_t chnl);
-void Process_COMMAND_STOP(uint8_t chnl);
-void Process_COMMAND_PAUSE(uint8_t chnl);
-void Process_COMMAND_CONTINUE(uint8_t chnl);
+
+extern __IO uint32_t tim5_arr;
+extern __IO uint32_t train_count;	//TRAIN模式计数器，
+extern __IO uint32_t train_acount;	//TRAIN模式需要计数的总数，例如：10S，Freq=10Hz，则总数=10*10=100个，注意，末尾不满1的舍去
+
+void Process_COMMAND_START(void);
+void Process_COMMAND_STOP(void);
+void Process_COMMAND_PAUSE(void);
+void Process_COMMAND_CONTINUE(void);
 
 #endif

@@ -42,7 +42,7 @@
 
 
 
-
+#include "Timer.h"
 #include "Timer6.h"
 #include "Led.h"
 #include "Beep.h"
@@ -64,7 +64,6 @@
 #include "SSD1961.h"
 #include "UI.h"
 #include "Output.h"
-#include "Timer2.h"
 #include "Wdg.h"
 
 
@@ -88,6 +87,7 @@
 #define TEST_KEYBOARD	0
 #define TEST_TEMP		1
 
+
 //读取ID方案，A--直接赋值，容易驱动成功		B--读取寄存器，经常失败，待解决
 #define ID_PLAN_A		0
 #define ID_PLAN_B		1
@@ -96,7 +96,7 @@
 
 
 
-#define	VOLTAGE_REF_VALUE	4.096	//基准值为4.096V
+#define	VOLTAGE_REF_VALUE		4.096		//基准值为4.096V
 #define DEBUG_UART_RATE     115200	//定义调试串口波特率=115200bps
 
 
@@ -124,8 +124,8 @@ extern volatile unsigned int SysTick_Count;   //Systick计数
 extern volatile unsigned int SysTick_Count1;   //Systick计数
 extern volatile unsigned int TimingDelay;     //延时函数计数
 
-extern volatile unsigned char Voltage_Ploar_Flag ; 		//电压极性全局变量，0代表正极性，1代表负极性
-extern volatile unsigned char Current_Ploar_Flag ; 		//电流极性全局变量，0代表正极性，1代表负极性
+//extern volatile unsigned char Voltage_Ploar_Flag ; 		//电压极性全局变量，0代表正极性，1代表负极性
+//extern volatile unsigned char Current_Ploar_Flag ; 		//电流极性全局变量，0代表正极性，1代表负极性
 
 
 

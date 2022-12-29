@@ -452,6 +452,8 @@ typedef struct							/* FP:	处理框架，无需修改*/
 	uint8_t Read2;						/* 缓冲区读指针2 */
 }KEY_FIFO_T;
 
+
+
 /*	FP:	配置控制芯片引脚	*/
 void Btn_Init(void);
 /*	FP:	无需修改 	供外部调用的函数声明。	*/

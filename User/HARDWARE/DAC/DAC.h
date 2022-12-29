@@ -34,27 +34,22 @@
 //#define DA_OUTPUTRANGE			DA_OUTPUTRANGE_10800MV
 #define DA_OUTPUTRANGE			DA_OUTPUTRANGE_4096MV
 
-//#define DA_CS1  	PAout(2)
-//#define DA_CS2	PAout(3)
-//#define DA_SDIN 	PAout(6)
-//#define DA_SCLK	PAout(5)
-//#define DA_LDAC 	PAout(4)
 
 
-#define DA_CS1_H()	GPIOA->BSRRL = GPIO_Pin_2;
-#define DA_CS1_L()	GPIOA->BSRRH = GPIO_Pin_2;
+#define DA_CS1_H()	GPIOA->BSRRL = GPIO_Pin_2
+#define DA_CS1_L()	GPIOA->BSRRH = GPIO_Pin_2
 
-#define DA_CS2_H()	GPIOA->BSRRL = GPIO_Pin_3;
-#define DA_CS2_L()	GPIOA->BSRRH = GPIO_Pin_3;
+#define DA_CS2_H()	GPIOA->BSRRL = GPIO_Pin_3
+#define DA_CS2_L()	GPIOA->BSRRH = GPIO_Pin_3
 
-#define DA_LDAC_H()	GPIOA->BSRRL = GPIO_Pin_4;
-#define DA_LDAC_L()	GPIOA->BSRRH = GPIO_Pin_4;
+#define DA_LDAC_H()	GPIOA->BSRRL = GPIO_Pin_4
+#define DA_LDAC_L()	GPIOA->BSRRH = GPIO_Pin_4
 
-#define DA_SCLK_H()	GPIOA->BSRRL = GPIO_Pin_5;
-#define DA_SCLK_L()	GPIOA->BSRRH = GPIO_Pin_5;
+#define DA_SCLK_H()	GPIOA->BSRRL = GPIO_Pin_5
+#define DA_SCLK_L()	GPIOA->BSRRH = GPIO_Pin_5
 
-#define DA_SDIN_H()	GPIOA->BSRRL = GPIO_Pin_6;
-#define DA_SDIN_L()	GPIOA->BSRRH = GPIO_Pin_6;
+#define DA_SDIN_H()	GPIOA->BSRRL = GPIO_Pin_6
+#define DA_SDIN_L()	GPIOA->BSRRH = GPIO_Pin_6
 
 
 #define DA_CHNL_VOLT	1
@@ -63,7 +58,7 @@
 
 
 void AD5542_Init(void);
-void AD5542_Output(uint8_t ch, int32_t value);
+void AD5542_Output(uint8_t ch, int64_t value);
 
 #endif
 

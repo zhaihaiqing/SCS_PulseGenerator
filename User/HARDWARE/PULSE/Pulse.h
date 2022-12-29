@@ -77,4 +77,6 @@ extern void DO6_PA11_TIM1_CH4(uint16_t arr, uint16_t psc);		//暂时未使用通道，可
 extern void DO7_PA3_TIM5_CH4(uint16_t arr, uint16_t psc);		//暂时未使用通道，可供扩展
 void DO_ALL_SYNC_Init(uint8_t do_timx);
 
+//extern unsigned char DOStatue;		//设备运行状态
+
 #endif

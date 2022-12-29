@@ -38,8 +38,8 @@ void Switch_Ctrl(uint8_t phase)
 			if((Switch.ModeCur & (1 << MODE_BIT_VC)) == (SELECT_VC_V << MODE_BIT_VC))   //MODE_BIT_VC		0     SELECT_VC_V		1
 			{
 				//极性切换，电压正极性
-				Voltage_Ploar_Flag	=	0;
-				Current_Ploar_Flag	=	0;
+				//Voltage_Ploar_Flag	=	0;
+				//Current_Ploar_Flag	=	0;
 				log_info("SW Mode to Voltage, Positive voltage!\r\n");
 				
 				SW_CV_MODE = 0;     //电压模式
@@ -47,8 +47,8 @@ void Switch_Ctrl(uint8_t phase)
 			else
 			{
 				//极性切换,电流正极性
-				Voltage_Ploar_Flag	=	0;
-				Current_Ploar_Flag	=	0;
+				//Voltage_Ploar_Flag	=	0;
+				//Current_Ploar_Flag	=	0;
 				log_info("SW Mode to Current, Positive current!\r\n");
 				SW_CV_MODE = 1;       //电流模式
 				
@@ -59,16 +59,16 @@ void Switch_Ctrl(uint8_t phase)
 			if((Switch.ModeCur & (1 << MODE_BIT_VC)) == (SELECT_VC_V << MODE_BIT_VC))
 			{
 				//极性切换,电压负极性
-				Voltage_Ploar_Flag	=	1;
-				Current_Ploar_Flag	=	1;
+				//Voltage_Ploar_Flag	=	1;
+				//Current_Ploar_Flag	=	1;
 				log_info("SW Mode to Voltage, Negative voltage!\r\n");
 				SW_CV_MODE = 0 ;
 			}
 			else
 			{
 				//极性切换,电流负极性
-				Voltage_Ploar_Flag	=	1;
-				Current_Ploar_Flag	=	1;
+				//Voltage_Ploar_Flag	=	1;
+				//Current_Ploar_Flag	=	1;
 				log_info("SW Mode to Current, Negative current!\r\n");
 				SW_CV_MODE = 1 ;
 			}

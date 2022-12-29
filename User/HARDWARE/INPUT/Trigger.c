@@ -1,6 +1,8 @@
 
 #include  "main.h"
 
+
+
 #define TRIGGER_EXTBNC_ACTIVE		0			//上升沿，高电平进行输出
 #define TRIGGER_EXTBNE_INACTIVE		1			//下降沿，低电平停止输出。输入光耦反向，故下降沿时引脚电平为高
 
@@ -10,41 +12,83 @@
 *  功能   ：中断处理
 			后面板BNC外部中断可运行于EXTBNC模式，控制输出（屏幕幅值）波形
 ******************************************************************************/
+//__IO unsigned int ex0_count=0;
+__IO unsigned int ex_bnc_flag=0;
 void EXTI0_IRQHandler(void)
 {
-	if(UserOperation.fMode == UO_MODE_EXTBNC)
+	if(EXTI->PR & (1 << 0)) 
 	{
-		if(pTRIGGER_IN == TRIGGER_EXTBNE_INACTIVE)
-		{
-			Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
-			DOState.Status[DO_TIM4] = DOSTATE_STATUS_COMPLETE;														//[V194]
-		}
-		else if(pTRIGGER_IN == TRIGGER_EXTBNC_ACTIVE)
-		{
+		//ex0_count++;
+		
+		if(UserOperation.fMode == UO_MODE_EXTBNC  && ( (Wave_type==0) || (Wave_type ==1) ) )
+		{	
+			//log_info("123,%d,%d\r\n",UserOperation.fMode,Wave_Type);
 			if(UserOperation.bVC == SELECT_VC_V)
 			{
 				pPwmArrayParam[DO_TIM4]->Ampl = UserOperation.V_ModeExtBnc.Param[UO_PARAM_AMPL];
+				
 			}
 			else if(UserOperation.bVC == SELECT_VC_C)
 			{
 				pPwmArrayParam[DO_TIM4]->Ampl = UserOperation.C_ModeExtBnc.Param[UO_PARAM_AMPL];
 			}
 			
-			if(pPwmArrayParam[DO_TIM4]->Ampl != 0 && DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)			//[V194]逻辑不严谨，会在结束后根据刺激个数交替出现running/stop字符
+			
+			
+			if(pTRIGGER_IN == 1)//上升沿
 			{
-				DOState.Status[DO_TIM4] = DOSTATE_STATUS_RUNNING;
+				if(Wave_type==0)
+				{
+					Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+				}
+				else
+				{
+					Output_VorC(UserOperation.bVC, (int64_t)(0-(int64_t)pPwmArrayParam[DO_TIM4]->Ampl), OUTPUT_ENABLE);
+				}
+				pTRIGGER_OUT = 1;
+				
 			}
-			else if(pPwmArrayParam[DO_TIM4]->Ampl == 0 && DOState.Status[DO_TIM4] == DOSTATE_STATUS_RUNNING)		//[V194]
+			else if(pTRIGGER_IN == 0)//下降沿
 			{
+				Output_VorC(UserOperation.bVC, 0, OUTPUT_ENABLE);
+				pTRIGGER_OUT = 0;
 				DOState.Status[DO_TIM4] = DOSTATE_STATUS_COMPLETE;
 			}
-
-			Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+			
 		}
-	}
-	
-	EXTI->PR |= 1 << 0;
+		
+		
+		else if(UserOperation.fMode == UO_MODE_EXTBNC  && ( (Wave_type==2) || (Wave_type ==3) ) )
+		{
+			uint64_t t5_arr=0,amp=0,pulse=0;
+			
+			if(UserOperation.bVC == SELECT_VC_V)
+			{
+				pPwmArrayParam[DO_TIM4]->Ampl = UserOperation.V_ModeExtBnc.Param[UO_PARAM_AMPL];
+				pulse = UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE];
+			}
+			else if(UserOperation.bVC == SELECT_VC_C)
+			{
+				pPwmArrayParam[DO_TIM4]->Ampl = UserOperation.C_ModeExtBnc.Param[UO_PARAM_AMPL];
+				pulse = UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE];
+			}
+			
+			if(pulse>0)
+			{
+				ex_bnc_flag=1;
+				t5_arr = pulse/500-1;
+				
+				DOState.Status[DO_TIM4] = DOSTATE_STATUS_RUNNING;
+				
+				Enable_Timer5(t5_arr);
+			}
+		}
+		
+		EXTI->PR |= 1 << 0;
+		}
 }
+
+
 
 #if(PCB_VERSION >= PCB_V15)
 void UO_Update(uint8_t updatecmd)
@@ -57,7 +101,7 @@ void UO_Update(uint8_t updatecmd)
 			
 			if(updatecmd == UPDATE_ALL)
 			{				
-				if(PulseTran_Single(pPwmArrayParam[DO_TIM4]) == RTN_NORMAL)
+				if(PulseTran_Single(pPwmArrayParam[DO_TIM4]) == RTN_NORMAL)		//计算波形参数
 				{
 					DOState.Config |= 1 << DO_TIM4;
 				}
@@ -67,7 +111,7 @@ void UO_Update(uint8_t updatecmd)
 					
 					if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 					{
-						Process_COMMAND_STOP(DO_TIM4);
+						Process_COMMAND_STOP();
 					}
 				}
 			}
@@ -88,15 +132,16 @@ void UO_Update(uint8_t updatecmd)
 					
 					if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 					{
-						Process_COMMAND_STOP(DO_TIM4);
+						Process_COMMAND_STOP();
 					}
 				}
 			}
 			
-			if(pTRIGGER_PWM == TRIGGER_PWM_ACTIVE)										//[V191],修复幅值需根据TRIGGER更新导致的延迟bug
-			{
-				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
-			}
+//			if(pTRIGGER_PWM == TRIGGER_PWM_ACTIVE)										//[V191],修复幅值需根据TRIGGER更新导致的延迟bug
+//			{
+//				log_info("123\r\n");
+//				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
 		
 			break;
 		
@@ -114,7 +159,7 @@ void UO_Update(uint8_t updatecmd)
 					
 					if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 					{
-						Process_COMMAND_STOP(DO_TIM4);
+						Process_COMMAND_STOP();
 					}	
 				}				
 			}
@@ -135,15 +180,15 @@ void UO_Update(uint8_t updatecmd)
 					
 					if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 					{
-						Process_COMMAND_STOP(DO_TIM4);
+						Process_COMMAND_STOP();
 					}					
 				}
 			}
 			
-			if(pTRIGGER_PWM == TRIGGER_PWM_ACTIVE)
-			{
-				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
-			}
+//			if(pTRIGGER_PWM == TRIGGER_PWM_ACTIVE)
+//			{
+//				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
 		
 			break;
 		
@@ -161,7 +206,7 @@ void UO_Update(uint8_t updatecmd)
 					
 					if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 					{
-						Process_COMMAND_STOP(DO_TIM4);						
+						Process_COMMAND_STOP();						
 					}	
 				}				
 			}
@@ -182,15 +227,15 @@ void UO_Update(uint8_t updatecmd)
 					
 					if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 					{
-						Process_COMMAND_STOP(DO_TIM4);
+						Process_COMMAND_STOP();
 					}				
 				}
 			}
 			
-			if(pTRIGGER_PWM == TRIGGER_PWM_ACTIVE)
-			{
-				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
-			}
+//			if(pTRIGGER_PWM == TRIGGER_PWM_ACTIVE)
+//			{
+//				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
 		
 			break;
 		
@@ -253,7 +298,7 @@ void UO_Update(uint8_t updatecmd)
 /********************************************************************
 *  功能   ：初始化
 ******************************************************************************/
-void TriggerEx_Init(void)
+void TriggerExIN01_Init(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure;
 	NVIC_InitTypeDef   NVIC_InitStructure;
@@ -265,10 +310,68 @@ void TriggerEx_Init(void)
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//普通输出模式
-//	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
-//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
 	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+	
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource0);//PE2 连接到中断线2
+	
+	/* 配置EXTI_Line0 */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line0;//LINE0
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;//中断事件
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising_Falling; //上升沿触发一次 
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;//使能LINE0
+	EXTI_Init(&EXTI_InitStructure);//配置
+	
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;//外部中断0
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;//抢占优先级2
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;//子优先级2
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
+	NVIC_Init(&NVIC_InitStructure);//配置
+	
+	log_info("TriggerExIN01_Init\r\n");
+}
+
+/********************************************************************
+*  功能   ：初始化
+******************************************************************************/
+void TriggerExIN23_Init(void)
+{
+	GPIO_InitTypeDef  GPIO_InitStructure;
+	NVIC_InitTypeDef   NVIC_InitStructure;
+	EXTI_InitTypeDef   EXTI_InitStructure;
+	
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);//使能GPIOB时钟
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);//使能SYSCFG时钟
+	
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//普通输出模式
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
+	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+	
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource0);//PE2 连接到中断线2
+	
+	
+	/* 配置EXTI_Line0 */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line0;//LINE0
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;//中断事件
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; //上升沿触发一次 
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;//使能LINE0
+	EXTI_Init(&EXTI_InitStructure);//配置
+	
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;//外部中断0
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;//抢占优先级2
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;//子优先级2
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
+	NVIC_Init(&NVIC_InitStructure);//配置
+	
+	log_info("TriggerExIN23_Init\r\n");
+}
+
+void TriggerOUT_Init(void)
+{
+	GPIO_InitTypeDef  GPIO_InitStructure;
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);//使能GPIOB时钟
 	
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
@@ -277,56 +380,54 @@ void TriggerEx_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
 	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
 	
-	
-	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource0);//PE2 连接到中断线2
-	
-	
-	/* 配置EXTI_Line0 */
-	EXTI_InitStructure.EXTI_Line = EXTI_Line0;//LINE0
-	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;//中断事件
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising_Falling; //上升和下降沿均触发，上升沿输出波形，下降沿输出0 
-	EXTI_InitStructure.EXTI_LineCmd = ENABLE;//使能LINE0
-	EXTI_Init(&EXTI_InitStructure);//配置
-	
-	
-	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;//外部中断0
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02;//抢占优先级2
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;//子优先级2
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
-	NVIC_Init(&NVIC_InitStructure);//配置
-	
-	
-	
-	
-		
-////	/* 配置EXTI_Line0 */
-//	EXTI_InitStructure.EXTI_Line = EXTI_Line15;//LINE0
+	pTRIGGER_OUT = 0;
+}
+
+
+
+/********************************************************************
+*  功能   ：初始化
+******************************************************************************/
+//void TriggerEx_Init(void)
+//{
+//	GPIO_InitTypeDef  GPIO_InitStructure;
+//	NVIC_InitTypeDef   NVIC_InitStructure;
+//	EXTI_InitTypeDef   EXTI_InitStructure;
+//	
+//	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);//使能GPIOB时钟
+//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);//使能SYSCFG时钟
+//	
+
+//	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//普通输出模式
+////	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
+////	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
+//	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
+//	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+//	
+//	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
+//	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
+//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
+//	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
+//	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+//	
+//	pTRIGGER_OUT = 0;
+//	
+//	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource0);//PE2 连接到中断线2
+//	
+//	
+//	/* 配置EXTI_Line0 */
+//	EXTI_InitStructure.EXTI_Line = EXTI_Line0;//LINE0
 //	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;//中断事件
-//	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; //上升沿触发 
+//	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; //上升沿触发一次 
 //	EXTI_InitStructure.EXTI_LineCmd = ENABLE;//使能LINE0
 //	EXTI_Init(&EXTI_InitStructure);//配置
 //	
 //	
 //	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;//外部中断0
-//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02;//抢占优先级2
-//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;//子优先级2
+//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;//抢占优先级2
+//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;//子优先级2
 //	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
 //	NVIC_Init(&NVIC_InitStructure);//配置
-	
-	
-//	RCC->APB2ENR |= 1 << 3;
-//	GPIOB->CRL &= 0XFFFFFF00;
-//	GPIOB->CRL |= 0X00000038;
-//	GPIOB->ODR |= (0 << 0) | (1 << 1);
-//	
-//	Ex_NVIC_Config(GPIO_B, 0, FTIR|RTIR);
-//	MY_NVIC_Init(2, 2, EXTI0_IRQn, 2);
-	
-//	#if(PCB_VERSION >= PCB_V15)
-//		GPIOB->CRH &= 0X0FFFFFFF;
-//		GPIOB->CRH |= 0X80000000;
-//		GPIOB->ODR |= 0 << 15;
-		
-		//Ex_NVIC_Config(GPIO_B, 15, FTIR|RTIR);
-//	#endif
-}
+//}

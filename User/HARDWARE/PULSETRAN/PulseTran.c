@@ -14,8 +14,8 @@ __align(8) static float_t dTempVar = 0;																//ÁÙÊ±±äÁ¿£¬ÓÃÓÚÁÙÊ±´æ´¢¼
 *	ÏÞÖµ	£º	
 				psc--[15:0]				arr--[15:0]
 *	±¸×¢	£º	
-				¶ÔÓÚ×ÜÏß72MHz
-				ÉèÖÃÊä³ö²¨ÐÎÆµÂÊ20KHz£¬ÔòÊä³ö²¨ÐÎÖÜÆÚ T = 1 / 20KHz = 50us
+				¶ÔÓÚ×ÜÏß84MHz
+				ÉèÖÃÊä³ö²¨ÐÎÆµÂÊ50KHz£¬ÔòÊä³ö²¨ÐÎÖÜÆÚ T = 1 / 50KHz = 20us
 				¢ÙÈôpsc = 1·ÖÆµÔòÃ¿1us¼ÆÊýÎª	72M / 1M = 72£¬ÔòÃ¿¸ö²¨ÐÎÖÜÆÚ¼ÆÊý	50 * (72 / 1) = 3600
 				  Èôpsc = 2·ÖÆµÔòÃ¿1us¼ÆÊýÎª	72M / 2 / 1M = 36,Ã¿¸ö²¨ÐÎÖÜÆÚ¼ÆÊý	50 * (72 / 2) = 1800
 				¢Ú¸ù¾ÝTout = ((arr+1)*(psc+1))/Tclk
@@ -35,8 +35,10 @@ static uint8_t PulseTran_Sub_CalcPwmPara(float_t freq, float_t duty, sPwmParam_t
 #endif
 	
 	/*	temp--[2.400, 3.600.000.000]	Tout = ((arr+1)*(psc+1))/Tclk	(arr+1)*(psc+1) = Tclk/freq		*/
-	temp = 84000000  / ((float_t)freq / 100);															//²¨ÐÎÖÜÆÚ£¬µ¥Î»¼ÆÊýÆµÂÊ72000000 / ²¨ÐÎÆµÂÊ = µ¥¸ö²¨¼ÆÊý¸öÊý¡£Á½´Î³Ë10ÎªPULSE_FREQ_MAGNIFY£¬Èç´Ë´¦Àí±ÜÃâÖ±½ÓÏà³ËÒç³ö»òºó³ËÆ«²î´ó
+	temp = 84000000  / ((float_t)freq / 100);															//²¨ÐÎÖÜÆÚ£¬µ¥Î»¼ÆÊýÆµÂÊ84000000 / ²¨ÐÎÆµÂÊ = µ¥¸ö²¨¼ÆÊý¸öÊý¡£Á½´Î³Ë10ÎªPULSE_FREQ_MAGNIFY£¬Èç´Ë´¦Àí±ÜÃâÖ±½ÓÏà³ËÒç³ö»òºó³ËÆ«²î´ó
 
+	//log_info("temp=%f\r\n",temp);
+		
 	/*	
 		×Ô±àÐ¡Ëã·¨£¬ÇóÆ«²îÆÚÍûÆµÂÊ½ÏÐ¡ÅäÖÃ²ÎÊý£¬ÎÞ·¨Ê¹ÓÃµçÄÔ¶Ë¿ÉÓÃµÄÇî¾Ù·¨£¬ÈÔÓÐÆ«²î
 		Ë¼Â·£º½ÏÐ¡Ê±Ö±½ÓÅäÖÃpscÎª1£¬ÁãÎó²î£»½Ï´óÊ±£¬ÅÐ¶Ï¿ª·½ºÍ¾ÝÐè³ýn¸ö10½µµÍÎ»ÊýÅäÖÃ½øÐÐ±È½Ï£¬Æ«²îÐ¡Õß×÷ÎªÅäÖÃÖµ
@@ -83,6 +85,9 @@ static uint8_t PulseTran_Sub_CalcPwmPara(float_t freq, float_t duty, sPwmParam_t
 			psc1 = psc2;
 		}
 	}
+	
+	
+
 
 	pwm->PwmARR = arr1 - 1;																			//arr£¬µ¥¸ö²¨¼ÆÊý¸öÊý
 	pwm->PwmPSC = psc1 - 1;																			//psc£¬µ¥Î»¼ÆÊýÆµÂÊ72000000 / psc / arr£¬psc¸ü¶àÉè¼ÆÆµÂÊ·ÖÆµ£¬Í¨¹ý²¨ÐÎÖÜÆÚ½øÐÐ¼ÆËã	
@@ -112,6 +117,9 @@ static uint8_t PulseTran_Sub_CalcPwmPara(float_t freq, float_t duty, sPwmParam_t
 		temp = (pwm->PwmARR + 1) * duty / PULSE_DUTY_FULL;
 		pwm->PwmDuty = (uint16_t)(temp + 0.5);
 	}
+	
+	log_info("arr1=%d,psc1=%d\r\n",pwm->PwmARR,pwm->PwmPSC);
+	
 	return 0;
 }
 
@@ -736,7 +744,13 @@ eRtn_t PulseTran_Five(sPulseFive_t *five, sPwmArrayParam_t *param)
 *	ÌØÕ÷	£º	
 				µ¥¸ö¸ßµçÆ½Âö³å
 *	´¦Àí	£º	
-				¿¼ÂÇÆµÂÊ¹ýµÍÇé¿ö£¬¿ÉÒÔÄ£Äâ³É100Õ¼¿Õ±ÈµÄ²¨ÐÎ
+				·Ö¶Î¿¼ÂÇ£¬Ä¿Ç°×î³¤300S£¬×î¶Ì£¬60us£¨ÔÝ¶¨£©
+				
+				1£º·ÖÆµ42±¶£¬CLK=2MHz£¬ÖÜÆÚ=0.5us£¬16bit×î³¤¼ÆÊýÖÜÆÚ=65535*0.5=32.767ms£¬¼´0-32ms¶Î
+				2£º·ÖÆµ420±¶£¬CLK=200kHz£¬ÖÜÆÚ=5us£¬16bit×î³¤¼ÆÊýÖÜÆÚ=65535*5=327.67ms£¬¼´32-320ms¶Î
+				3£º·ÖÆµ4200±¶£¬CLK=20kHz£¬ÖÜÆÚ=50us£¬16bit×î³¤¼ÆÊýÖÜÆÚ=65535*50=3276.7ms£¬¼´320-3.2s¶Î
+				4£º·ÖÆµ42000±¶£¬CLK=2kHz£¬ÖÜÆÚ=500us£¬16bit×î³¤¼ÆÊýÖÜÆÚ=65535*500=32767ms£¬¼´3.2-32s¶Î
+				
 				Ã¿¸ö½×¶ÎµÄ³¤¶È³ÖÐøÊ±¼äÕÛºÏ³ÉPWMÊýÁ¿£¬¹Ì¶¨ÆµÂÊ10kHz,ÖÜÆÚ100us
 *	²ÎÊý	£º					
 				sPwmArrayParam_t--¹æÕûÎª¿ÉÓÃµÄ²ÎÊýÊý×é
@@ -759,11 +773,11 @@ eRtn_t PulseTran_Single(sPwmArrayParam_t *param)
 	
 	if (UserOperation.bVC == SELECT_VC_V)
 	{
-		param->Ampl = UserOperation.V_ModeSingle.Param[UO_PARAM_AMPL];
+		param->Ampl = UserOperation.V_ModeSingle.Param[UO_PARAM_AMPL];						//»ñÈ¡µçÑ¹·ùÖµ²ÎÊý
 	}
 	else
 	{
-		param->Ampl = UserOperation.C_ModeSingle.Param[UO_PARAM_AMPL];
+		param->Ampl = UserOperation.C_ModeSingle.Param[UO_PARAM_AMPL];						//»ñÈ¡µçÁ÷·ùÖµ²ÎÊý
 	}
 	
 	if(param->Ampl == 0)
@@ -771,23 +785,24 @@ eRtn_t PulseTran_Single(sPwmArrayParam_t *param)
 		return RTN_ABNORMAL_AMPL;
 	}
 	
-	freq = PULSE_FREQ_AUXILIARY;
+	freq = PULSE_FREQ_AUXILIARY;			//¸¨ÖúÆµÂÊ£¬50KHz£¬ÖÜÆÚ20us
 	duty = PULSE_DUTY_FULL;
 	PulseTran_Sub_CalcPwmPara(freq, duty, &(param->Pwm[0]));
 	
 	if (UserOperation.bVC == SELECT_VC_V)
 	{
-		dTempVar = UserOperation.V_ModeSingle.Param[UO_PARAM_PULSE] / 1000 * ((float_t)freq / 1000 / PULSE_FREQ_MAGNIFY) / 1000;
+		dTempVar = UserOperation.V_ModeSingle.Param[UO_PARAM_PULSE] / 1000 * ((float_t)freq / 1000 / PULSE_FREQ_MAGNIFY) / 1000;		//¼ÆËã½øÈëÖÐ¶ÏµÄ´ÎÊý
 	}
 	else
 	{
-		dTempVar = UserOperation.C_ModeSingle.Param[UO_PARAM_PULSE] / 1000 * ((float_t)freq / 1000 / PULSE_FREQ_MAGNIFY) / 1000;
+		dTempVar = UserOperation.C_ModeSingle.Param[UO_PARAM_PULSE] / 1000 * ((float_t)freq / 1000 / PULSE_FREQ_MAGNIFY) / 1000;		//¼ÆËã½øÈëÖÐ¶ÏµÄ´ÎÊý
 	}
 	param->Pwm[0].PwmNum = (uint32_t)dTempVar;
-	if(UserOperation.bPhase == UO_PHASE_BIPHASE)
+	
+	if(UserOperation.bPhase == UO_PHASE_BIPHASE)									//Èç¹ûË«ÏàÄ£Ê½
 	{
 		PulseTran_Sub_CalcPwmPara(freq, duty, &(param->Pwm[1]));
-		param->Pwm[1].PwmNum = (uint32_t)dTempVar;					//ÔÝ°´Ë«ÏàµÈ¿í¼ò»¯´¦Àí
+		param->Pwm[1].PwmNum = (uint32_t)dTempVar;									//ÔÝ°´Ë«ÏàµÈ¿í¼ò»¯´¦Àí
 	}
 	
 	if(param->Pwm[0].PwmNum == 0)

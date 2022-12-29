@@ -42,243 +42,171 @@ static void StatusBar_Progress(uint8_t status)
 static uint32_t temp_runcnt = 0;																//运行时间暂存
 static uint16_t Tbl_Temp_CCRx[8] = {0};
 static uint16_t Tbl_Temp_CNT[8]  = {0};
+
+__IO uint32_t tim5_arr=0;
+__IO uint32_t train_count=0;	//TRAIN模式计数器，
+__IO uint32_t train_acount=0;	//TRAIN模式需要计数的总数，例如：10S，Freq=10Hz，则总数=10*10=100个，注意，末尾不满1的舍去
 /********************************************************************
 *	功能	：	命令处理函数
 ******************************************************************************/
-void Process_COMMAND_START(uint8_t chnl)
+void Process_COMMAND_START(void)
 {
 	uint8_t i = 0;
 	
-	if(chnl == DO_ALL)
+	if(UserOperation.fMode == UO_MODE_SINGLE)	//单次模式
 	{
-		for(i=0; i<8; i++)
+		
+		uint64_t pulse=0;
+		
+		//计算tim5_arr值
+		if(UserOperation.bVC == SELECT_VC_V)
 		{
-			if(DOState.Config & (1 << i))
-			{
-				DOState.Status[i] = DOSTATE_STATUS_RUNNING;
-				*Tbl_TIM_ARR[i]   = pPwmArrayParam[i]->Pwm[0].PwmARR;
-				*Tbl_TIM_PSC[i]   = pPwmArrayParam[i]->Pwm[0].PwmPSC;
-				*Tbl_TIM_CCRx[i]  = pPwmArrayParam[i]->Pwm[0].PwmDuty;
-				*Tbl_TIM_DIER[i] |= (1 << 0);
-				*Tbl_TIM_CR1[i]  |= 0x01;
-			}
-			
-			if(DOState.ZeroConfig & (1 << i))
-			{
-				DOState.Status[i] = DOSTATE_STATUS_RUNNING;
-				TIM2->DIER   |= 1 << 0;
-				TIM2->CR1    |= 0X01;
-			}
+			pulse = UserOperation.V_ModeSingle.Param[UO_PARAM_PULSE];	//单位为ns
 		}
-	}
-	else if(chnl < DO_ALL)
-	{
-		if(DOState.Config & (1 << chnl))
+		else if(UserOperation.bVC == SELECT_VC_C)
 		{
-		     DOState.Status[chnl] = DOSTATE_STATUS_RUNNING;
-			
-			*Tbl_TIM_ARR[chnl]   = pPwmArrayParam[chnl]->Pwm[0].PwmARR;
-			*Tbl_TIM_PSC[chnl]   = pPwmArrayParam[chnl]->Pwm[0].PwmPSC;
-			*Tbl_TIM_CCRx[chnl]  = pPwmArrayParam[chnl]->Pwm[0].PwmDuty;
-			*Tbl_TIM_DIER[chnl] |= (1 << 0);
-			*Tbl_TIM_CR1[chnl]  |= 0x01;
+			pulse = UserOperation.C_ModeSingle.Param[UO_PARAM_PULSE];	//单位为ns
+		}
+		tim5_arr = pulse/500-1;				//计算tim2的装填值，tim2控制周期,(TIM2分频值为42，2M时钟，没记一次数，时间为0.5us，即500ns)
+		
+		SW_CV_OUTPUT = 1;   //打开输出
+		pLEDOUTPUT = LED_DIRECTLY_ON;
+		Delay_ms(15);		//等待继电器闭合
+		log_info("SINGLETRIGGER Mode,SW_CV_OUTPUT = 1,Wave_type=%d,tim5_arr=%d\r\n",Wave_type,tim5_arr);
+		
+		DOState.Status[DO_TIM4] = DOSTATE_STATUS_RUNNING;
+		Enable_Timer5(tim5_arr);
+	}
+	
+	else if(UserOperation.fMode == UO_MODE_FREERUN)				//连续模式下，频率范围1-30KHz，对应周期为1000ms-33.333us，
+	{
+		uint64_t pulse=0,freq=0;
+		
+		if(UserOperation.bVC == SELECT_VC_V)
+		{
+			pulse = UserOperation.V_ModeFreeRun.Param[UO_PARAM_PULSE];	//单位为ns
+			freq = UserOperation.V_ModeFreeRun.Param[UO_PARAM_FREQ];
+		}
+		else if(UserOperation.bVC == SELECT_VC_C)
+		{
+			pulse = UserOperation.C_ModeFreeRun.Param[UO_PARAM_PULSE];	//单位为ns
+			freq = UserOperation.C_ModeFreeRun.Param[UO_PARAM_FREQ];
 		}
 		
-		if(DOState.ZeroConfig & (1 << chnl))
-		{
-			DOState.Status[chnl] = DOSTATE_STATUS_RUNNING;
-			TIM2->DIER   |= 1 << 0;
-			TIM2->CR1    |= 0X01;
-		}
-	}
-	
-	
-	T6.RunCnt = 1;
-	T2.OutputCnt = 0;
-}
-
-void Process_COMMAND_STOP(uint8_t chnl)
-{
-	uint8_t i = 0;
-	
-	if(chnl == DO_ALL)
-	{
-		for(i=0; i<8; i++)
-		{
-			DOState.Status[i] = DOSTATE_STATUS_COMPLETE;
-			
-			if(DOState.Config & (1 << i))
-			{
-				*Tbl_TIM_DIER[i] &= ~(1 << 0);
-				*Tbl_TIM_CR1[i]  &= ~0x01;
-				
-				Tbl_Flag[i]       = 0;				
-				*Tbl_TIM_CCRx[i]  = 0;
-				
-				if(*Tbl_TIM_ARR[i] - *Tbl_TIM_CNT[i] > 5)											//加快停止速度
-				{
-					*Tbl_TIM_CNT[i]  = *Tbl_TIM_ARR[i] - 2;
-				}
-				
-				*Tbl_TIM_ARR[i]   = SYNC_ARR;														//此三条语句起主要作用，能够解决中途停止引起下一次不同步问题
-				*Tbl_TIM_PSC[i]   = SYNC_PSC;
-				*Tbl_TIM_CCRx[i]  = SYNC_CCR;
-				
-				*Tbl_TIM_DIER[i] |= (1 << 0);
-				*Tbl_TIM_CR1[i]  |= 0x01;
-			}
-			else if(DOState.ZeroConfig & (1 << i))
-			{
-				TIM2->DIER   &= ~(1 << 0);
-				TIM2->CR1    &= ~0X01;
-				Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);									//[AATN]，若是后续扩展多通道，类似此处逻辑需注意调整
-			}
-		}
-	}
-	else if(chnl < DO_ALL)
-	{
-		DOState.Status[chnl] = DOSTATE_STATUS_COMPLETE;
+		tim5_arr = pulse/500-1;
 		
-		if(DOState.Config & (1 << chnl))
+		log_info("pulse=%lldns,freq=%lldmhz,tim5_arr=%d\r\n",pulse,freq,tim5_arr);
+		
+		//计算定时器2的周期
 		{
-			*Tbl_TIM_DIER[chnl]  &= ~(1 << 0);
-			*Tbl_TIM_CR1[chnl]   &= ~0x01;
+			uint32_t tim2_arr=0,tim2_psc=0;
+			double T=0;
+			tim2_psc=41;
 			
-			Tbl_Flag[chnl]       = 0;			
-			*Tbl_TIM_CCRx[chnl]  = 0;
+			freq = freq/1000;
 			
-			if(*Tbl_TIM_ARR[chnl] - *Tbl_TIM_CNT[chnl] > 5)											//加快停止速度
+			T = 1000000000000.0/freq;	//ns，计算周期
+			tim2_arr = T/500-1;			//计算tim2的装填值，tim2控制周期,(TIM2分频值为42，2M时钟，没记一次数，时间为0.5us，即500ns)
+			log_info("T=%lf,tim2_arr=%d\r\n",T,tim2_arr);
+			
+			if(tim5_arr>tim2_arr)
 			{
-				*Tbl_TIM_CNT[chnl]  = *Tbl_TIM_ARR[chnl] - 2;
+				tim5_arr = tim2_arr;
 			}
 			
-			*Tbl_TIM_ARR[chnl]   = SYNC_ARR;														//此三条语句起主要作用，能够解决中途停止引起下一次不同步问题
-			*Tbl_TIM_PSC[chnl]   = SYNC_PSC;
-			*Tbl_TIM_CCRx[chnl]  = SYNC_CCR;
+			SW_CV_OUTPUT = 1;   //打开输出
+			pLEDOUTPUT = LED_DIRECTLY_ON;
+			Delay_ms(15);		//等待继电器闭合
+			log_info("UO_MODE_FREERUN Mode,SW_CV_OUTPUT = 1,Wave_type=%d,tim5_arr=%d\r\n",Wave_type,tim5_arr);
 			
-			*Tbl_TIM_DIER[chnl] |= (1 << 0);
-			*Tbl_TIM_CR1[chnl]  |= 0x01;
-		}
-		else if(DOState.ZeroConfig & (1 << chnl))
-		{
-			TIM2->DIER   &= ~(1 << 0);
-			TIM2->CR1    &= ~0X01;
-			Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
-		}
-		 
-	}
-	
-	SW_CV_OUTPUT = 0;   //关闭输出
-	T6.RunCnt = 0;
-	T2.OutputCnt = 0;
-}
-
-void Process_COMMAND_PAUSE(uint8_t chnl)
-{
-	uint8_t i = 0;
-	
-	if(chnl == DO_ALL)
-	{
-		for(i=0; i<8; i++)
-		{
-			if(DOState.Status[i] == DOSTATE_STATUS_RUNNING)
-			{
-				DOState.Status[i] = DOSTATE_STATUS_PAUSE;
-				
-				if(DOState.Config & (1 << i))
-				{
-					Tbl_Temp_CCRx[i]  = *Tbl_TIM_CCRx[i];
-					*Tbl_TIM_CCRx[i]  = 0;
-					Tbl_Temp_CNT[i]   = *Tbl_TIM_CNT[i];
-					*Tbl_TIM_CNT[i]   = *Tbl_TIM_ARR[i];
-				}
-				else if(DOState.ZeroConfig & (1 << i))
-				{
-					TIM2->DIER   &= ~(1 << 0);
-					TIM2->CR1    &= ~0X01;
-					Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
-				}
-			}
+			Timer2_Init(tim2_arr,tim2_psc);
+			DOState.Status[DO_TIM4] = DOSTATE_STATUS_RUNNING;
+			TIM_Cmd(TIM2,ENABLE);
 		}		
 	}
-	else if(chnl < DO_ALL)
+	else if(UserOperation.fMode == UO_MODE_TRAIN)
 	{
-		if(DOState.Status[chnl] == DOSTATE_STATUS_RUNNING)
+		uint64_t pulse=0,freq=0,duration=0;
+		
+		if(UserOperation.bVC == SELECT_VC_V)
 		{
-			DOState.Status[chnl] = DOSTATE_STATUS_PAUSE;
-			
-			if(DOState.Config & (1 << chnl))
-			{
-				Tbl_Temp_CCRx[chnl]  = *Tbl_TIM_CCRx[chnl];
-				*Tbl_TIM_CCRx[chnl]  = 0;
-				Tbl_Temp_CNT[chnl]   = *Tbl_TIM_CNT[chnl];
-				*Tbl_TIM_CNT[chnl]   = *Tbl_TIM_ARR[chnl];	
-			}
-			else if(DOState.ZeroConfig & (1 << chnl))
-			{
-				TIM2->DIER   &= ~(1 << 0);
-				TIM2->CR1    &= ~0X01;
-				Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
-			}
+			pulse 	 = UserOperation.V_ModeTrain.Param[UO_PARAM_PULSE];	//单位为ns
+			freq 	 = UserOperation.V_ModeTrain.Param[UO_PARAM_FREQ];
+			duration = UserOperation.V_ModeTrain.Param[UO_PARAM_DURATION];
 		}
-		//log_info("SW_CV_OUTPUT = 0\r\n");
-		//SW_CV_OUTPUT = 0;   //关闭输出
+		else if(UserOperation.bVC == SELECT_VC_C)
+		{
+			pulse 	 = UserOperation.C_ModeTrain.Param[UO_PARAM_PULSE];	//单位为ns
+			freq 	 = UserOperation.C_ModeTrain.Param[UO_PARAM_FREQ];
+			duration = UserOperation.C_ModeTrain.Param[UO_PARAM_DURATION];//单位us
+		}
+		
+		tim5_arr = pulse/500-1;
+		
+		log_info("pulse=%lldns,freq=%lldmhz,tim5_arr=%d,duration=%lld\r\n",pulse,freq,tim5_arr,duration);
+		
+		//计算定时器2的周期
+		{
+			uint32_t tim2_arr=0,tim2_psc=0;
+			double T=0;
+			tim2_psc=41;
+			
+			freq = freq/1000;
+			
+			T = 1000000000000.0/freq;	//ns
+			tim2_arr = T/500-1;					//计算tim2的装填值，tim2控制周期,(TIM2分频值为42，2M时钟，没记一次数，时间为0.5us，即500ns)
+			
+			if(tim5_arr>tim2_arr)
+			{
+				tim5_arr = tim2_arr;
+			}
+			
+			train_acount= duration*1000 / T;
+			
+			log_info("T=%lf,tim2_arr=%d,train_acount=%d\r\n",T,tim2_arr,train_acount);
+			
+			SW_CV_OUTPUT = 1;   //打开输出
+			pLEDOUTPUT = LED_DIRECTLY_ON;
+			Delay_ms(15);		//等待继电器闭合
+			log_info("UO_MODE_TRAIN Mode,SW_CV_OUTPUT = 1,Wave_type=%d,tim5_arr=%d\r\n",Wave_type,tim5_arr);
+			
+			Timer2_Init(tim2_arr,tim2_psc);
+			DOState.Status[DO_TIM4] = DOSTATE_STATUS_RUNNING;
+			TIM_Cmd(TIM2,ENABLE);
+			
+		}
 	}
-
-	temp_runcnt = T6.RunCnt;
-	T6.RunCnt   = 0;
 }
 
-void Process_COMMAND_CONTINUE(uint8_t chnl)
+void Process_COMMAND_STOP(void)
 {
-	uint8_t i = 0;
+	Disable_Timer5();
+	TIM_Cmd(TIM2,DISABLE);
+	TIM2->CNT = 0;
 	
-	if(chnl == DO_ALL)
-	{
-		for(i=0; i<8; i++)
-		{
-			if(DOState.Status[i] == DOSTATE_STATUS_PAUSE)
-			{
-				DOState.Status[i] = DOSTATE_STATUS_RUNNING;
-				
-				if(DOState.Config & (1 << i))
-				{
-					*Tbl_TIM_CCRx[i]  = Tbl_Temp_CCRx[i];
-					*Tbl_TIM_CNT[i]   = Tbl_Temp_CNT[i];					
-				}
-				else if(DOState.ZeroConfig & (1 << i))
-				{
-					TIM2->DIER   |= 1 << 0;
-					TIM2->CR1    |= 0X01;
-				}
-			}
-		}
-	}
-	else if(chnl < DO_ALL)
-	{
-		if(DOState.Status[chnl] == DOSTATE_STATUS_PAUSE)
-		{
-			DOState.Status[chnl] = DOSTATE_STATUS_RUNNING;
-			
-			if(DOState.Config & (1 << chnl))
-			{
-				*Tbl_TIM_CCRx[chnl]  = Tbl_Temp_CCRx[chnl];
-				*Tbl_TIM_CNT[chnl]   = Tbl_Temp_CNT[chnl];				
-			}
-			else if(DOState.ZeroConfig & (1 << chnl))
-			{
-				TIM2->DIER   |= 1 << 0;
-				TIM2->CR1    |= 0X01;
-			}			
-		}
-	}
+	DOState.Status[DO_TIM4] = DOSTATE_STATUS_COMPLETE;
 	
-//	log_info("SW_CV_OUTPUT = 1\r\n");
-//	SW_CV_OUTPUT = 1;   //打开输出
-//	Delay_ms(15);		//等待继电器稳定闭合
+	AD5542_Output(DA_CHNL_ALL, 0);
 	
-	T6.RunCnt   = temp_runcnt;
-	temp_runcnt = 0;
+	SW_CV_OUTPUT = 0;//关闭输出
+	pLEDOUTPUT = LED_DIRECTLY_OFF;
+	TIM5_IRQ_Count = 0;	//清除计数器
+}
+
+void Process_COMMAND_PAUSE(void)
+{
+	//暂停定时器2
+	pLEDOUTPUT = LED_DIRECTLY_OFF;
+	TIM_Cmd(TIM2,DISABLE);
+	DOState.Status[DO_TIM4] = DOSTATE_STATUS_PAUSE;
+}
+
+void Process_COMMAND_CONTINUE(void)
+{
+	pLEDOUTPUT = LED_DIRECTLY_ON;
+	TIM_Cmd(TIM2,ENABLE);
+	DOState.Status[DO_TIM4] = DOSTATE_STATUS_RUNNING;
+
 }
 
 /********************************************************************
@@ -409,7 +337,7 @@ void Protocol_Usart1_Rx_Poll(void)
 								
 								Protocol_Usart1_Tx(COMMAND_START);
 							
-								Process_COMMAND_START(PulseConf.Channel);
+								Process_COMMAND_START();
 
 								StatusBar_Progress(STATUSBAR_RUN);
 							
@@ -419,13 +347,13 @@ void Protocol_Usart1_Rx_Poll(void)
 								
 								if(U1.Rtbl[rcvnum+ADDR_OFFSET_CONTENT_START] == 0x00)
 								{
-									Process_COMMAND_PAUSE(PulseConf.Channel);
+									Process_COMMAND_PAUSE();
 									
 									StatusBar_Progress(STATUSBAR_PAUSE);
 								}
 								else if(U1.Rtbl[rcvnum+ADDR_OFFSET_CONTENT_START] == 0x01)
 								{
-									Process_COMMAND_CONTINUE(PulseConf.Channel);
+									Process_COMMAND_CONTINUE();
 									
 									StatusBar_Progress(STATUSBAR_CONTINUE);
 								}
@@ -436,7 +364,7 @@ void Protocol_Usart1_Rx_Poll(void)
 							
 							case COMMAND_STOP:
 								
-								Process_COMMAND_STOP(PulseConf.Channel);
+								Process_COMMAND_STOP();
 							
 								Protocol_Usart1_Tx(COMMAND_STOP);
 							
@@ -503,7 +431,7 @@ void Protocol_Usart1_Rx_Poll(void)
 										{											
 											if(DOState.Status[PulseConf.Channel] == DOSTATE_STATUS_RUNNING)
 											{
-												Process_COMMAND_STOP(PulseConf.Channel);					//若正在运行时修改参数，则停止输出
+												Process_COMMAND_STOP();					//若正在运行时修改参数，则停止输出
 											}
 											
 											break;
@@ -513,7 +441,7 @@ void Protocol_Usart1_Rx_Poll(void)
 										{										
 											if(DOState.Status[PulseConf.Channel] == DOSTATE_STATUS_RUNNING)
 											{
-												Process_COMMAND_STOP(PulseConf.Channel);
+												Process_COMMAND_STOP();
 											}
 											
 											break;
@@ -550,7 +478,7 @@ void Protocol_Usart1_Rx_Poll(void)
 											
 												if(DOState.Status[PulseConf.Channel] == DOSTATE_STATUS_RUNNING)
 												{
-													Process_COMMAND_STOP(PulseConf.Channel);	//若正在运行时修改参数，则停止输出
+													Process_COMMAND_STOP();	//若正在运行时修改参数，则停止输出
 												}
 											}
 										}
@@ -577,7 +505,7 @@ void Protocol_Usart1_Rx_Poll(void)
 											
 												if(DOState.Status[PulseConf.Channel] == DOSTATE_STATUS_RUNNING)
 												{
-													Process_COMMAND_STOP(PulseConf.Channel);
+													Process_COMMAND_STOP();
 												}
 											}
 										}
@@ -614,7 +542,7 @@ void Protocol_Usart1_Rx_Poll(void)
 											
 												if(DOState.Status[PulseConf.Channel] == DOSTATE_STATUS_RUNNING)
 												{
-													Process_COMMAND_STOP(PulseConf.Channel);
+													Process_COMMAND_STOP();
 												}
 											}
 										}
@@ -649,7 +577,7 @@ void Protocol_Usart1_Rx_Poll(void)
 											
 												if(DOState.Status[PulseConf.Channel] == DOSTATE_STATUS_RUNNING)
 												{
-													Process_COMMAND_STOP(PulseConf.Channel);
+													Process_COMMAND_STOP();
 												}
 											}
 										}
@@ -694,7 +622,7 @@ void Protocol_Usart1_Rx_Poll(void)
 											
 												if(DOState.Status[PulseConf.Channel] == DOSTATE_STATUS_RUNNING)
 												{
-													Process_COMMAND_STOP(PulseConf.Channel);
+													Process_COMMAND_STOP();
 												}
 											}
 										}								

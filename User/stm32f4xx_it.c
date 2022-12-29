@@ -139,6 +139,7 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
+
 void SysTick_Handler(void)
 {
   //TimingDelay_Decrement();
@@ -148,7 +149,7 @@ void SysTick_Handler(void)
 	}
 	
 	SysTick_Count++;
-	//GPIOG->ODR ^= GPIO_Pin_15;
+	
 	
 	if(SysTick_Count==650)
 	{
@@ -158,9 +159,7 @@ void SysTick_Handler(void)
 	{
 		LED1_OFF();
 		SysTick_Count=0;
-	}
-	
-	
+	}	
 }
 
 /******************************************************************************/

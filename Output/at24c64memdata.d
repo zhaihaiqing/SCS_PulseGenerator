@@ -42,6 +42,7 @@
 .\output\at24c64memdata.o: .\User\SYSTEM\delay.h
 .\output\at24c64memdata.o: .\User\SYSTEM\debug_uart.h
 .\output\at24c64memdata.o: .\User\main.h
+.\output\at24c64memdata.o: .\User\HARDWARE\TIMER\Timer.h
 .\output\at24c64memdata.o: .\User\HARDWARE\TIMER\Timer6.h
 .\output\at24c64memdata.o: .\User\HARDWARE\LED\Led.h
 .\output\at24c64memdata.o: .\User\HARDWARE\BEEP\Beep.h
@@ -63,5 +64,4 @@
 .\output\at24c64memdata.o: .\User\HARDWARE\SSD1961\SSD1961.h
 .\output\at24c64memdata.o: .\User\HARDWARE\UI\UI.h
 .\output\at24c64memdata.o: .\User\HARDWARE\OUTPUT\Output.h
-.\output\at24c64memdata.o: .\User\HARDWARE\TIMER\Timer2.h
 .\output\at24c64memdata.o: .\User\HARDWARE\WDG\Wdg.h

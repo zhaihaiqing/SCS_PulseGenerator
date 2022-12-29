@@ -42,6 +42,7 @@
 .\output\usart1.o: .\User\SYSTEM\delay.h
 .\output\usart1.o: .\User\SYSTEM\debug_uart.h
 .\output\usart1.o: .\User\main.h
+.\output\usart1.o: .\User\HARDWARE\TIMER\Timer.h
 .\output\usart1.o: .\User\HARDWARE\TIMER\Timer6.h
 .\output\usart1.o: .\User\HARDWARE\LED\Led.h
 .\output\usart1.o: .\User\HARDWARE\BEEP\Beep.h
@@ -63,5 +64,4 @@
 .\output\usart1.o: .\User\HARDWARE\SSD1961\SSD1961.h
 .\output\usart1.o: .\User\HARDWARE\UI\UI.h
 .\output\usart1.o: .\User\HARDWARE\OUTPUT\Output.h
-.\output\usart1.o: .\User\HARDWARE\TIMER\Timer2.h
 .\output\usart1.o: .\User\HARDWARE\WDG\Wdg.h

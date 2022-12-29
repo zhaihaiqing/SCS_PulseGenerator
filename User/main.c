@@ -47,8 +47,8 @@ volatile unsigned int SysTick_Count = 0;   //Systick计数
 volatile unsigned int SysTick_Count1 = 0;   //Systick计数
 volatile unsigned int TimingDelay = 0;     //延时函数计数
 
-volatile unsigned char Voltage_Ploar_Flag = 0; 		//电压极性全局变量，0代表正极性，1代表负极性
-volatile unsigned char Current_Ploar_Flag = 0; 		//电流极性全局变量，0代表正极性，1代表负极性
+//volatile unsigned char Voltage_Ploar_Flag = 0; 		//电压极性全局变量，0代表正极性，1代表负极性
+//volatile unsigned char Current_Ploar_Flag = 0; 		//电流极性全局变量，0代表正极性，1代表负极性
 
 
 void IO_Init()
@@ -155,6 +155,8 @@ void Init_Devices(void)
 	
 	Init_SysTick();//开启SysTick定时器
 	
+	WDG_Init(4,3200);
+	
 	IO_Init();
 	Usart6_Init(DEBUG_UART_RATE);
 	
@@ -175,73 +177,73 @@ void Init_Devices(void)
 */
 	Delay_ms(100);	//等待
 	APOW_ON();		//打开模拟电源
-	log_info("Anglog power has open!\r\n");
-	log_info("Wait for analog power to stabilize......!\r\n");
-	Delay_ms(300);	//等待模拟电源稳定
+		log_info("Anglog power has open!\r\n");
+		log_info("Wait for analog power to stabilize......!\r\n");
+		Delay_ms(300);	//等待模拟电源稳定
 	LED_Init();
-	log_info("LED_Init OK!\r\n");
+		log_info("LED_Init OK!\r\n");
 	Beep_Init();
-	log_info("Beep_Init OK!\r\n");
+		log_info("Beep_Init OK!\r\n");
 	IIC_Init();
-	log_info("IIC_Init OK!\r\n");
+		log_info("IIC_Init OK!\r\n");
 	Btn_Init();		//按键检测程序，通过定时器来检测，每隔10ms执行一次检测
-	log_info("Btn_Init OK!\r\n");
+		log_info("Btn_Init OK!\r\n");
 	AD5542_Init();
-	AD5542_Output(DA_CHNL_ALL, 400);
-	log_info("AD5542_Init OK,Set AD5542 Output to zero!\r\n");
+	AD5542_Output(DA_CHNL_ALL, 0);
+		log_info("AD5542_Init OK,Set AD5542 Output to zero!\r\n");
 	Codec_Init();
-	log_info("Codec_Init OK!\r\n");
-	TriggerEx_Init();
-	log_info("TriggerEx_Init OK!\r\n");
+		log_info("Codec_Init OK!\r\n");
+	TriggerExIN01_Init();
+	TriggerOUT_Init();
+		log_info("TriggerExIN12_Init OK!\r\n");
 	AT24CXX_Init();
-	log_info("AT24CXX_Init OK!\r\n");
-	DO_ALL_SYNC_Init(DO_TIM4);		//此函数的作用
+		log_info("AT24CXX_Init OK!\r\n");
 	Uart1_Init(USART1_BAUD);
-	log_info("Uart1_Init OK! baud rate=%d bit/s\r\n",USART1_BAUD);
+		log_info("Uart1_Init OK! baud rate=%d bit/s\r\n",USART1_BAUD);
 	My_Mem_Init(SRAMIN);
 	Switch_Init();
 	pLEDOUTPUT=1;
+	WDG_Feed();
 	LCDRST_Init();
-	log_info("Reset LCD!\r\n");
+		log_info("Reset LCD!\r\n");
 	Delay_ms(600);	
+	WDG_Feed();
 	LCD_Init();
-	log_info("LCD OK! LCDDEV_ID=0x%x\r\n",lcddev.id);
+		log_info("LCD OK! LCDDEV_ID=0x%x\r\n",lcddev.id);
 	Delay_ms(400);							//延时，否则屏幕一闪而过，不再点亮。延时=400ms屏幕开始显示字符，但有异常条纹；=500ms屏幕显示正常；// longzhigu:  [V194]	
-	
+	WDG_Feed();
 	Memory_ConfigLoad();
 	UI_DeskTopInit();
-	
-	T2_ARR=99;
-	T2_PSC=83;
-	Timer2_Init(T2_ARR,T2_PSC);		//100us中断一次
-	log_info("Init Timer2 OK!\r\n");
-	log_info("Timer2 ARR=%d,PSC=%d\r\n",T2_ARR,T2_PSC);
-	log_info("Timer2 Overflow_time=%dus\r\n",(T2_ARR+1)*84/(T2_PSC+1));
-	
+	WDG_Feed();
 	T6_ARR=999;
 	T6_PSC=83;
 	Timer6_Init(T6_ARR,T6_PSC);		//1ms一次中断
 	log_info("Init Timer6 OK!\r\n");
 	log_info("Timer6 ARR=%d,PSC=%d\r\n",T6_ARR,T6_PSC);
-	log_info("Timer6 Overflow_time=%dus\r\n",(T6_ARR+1)*84/(T6_PSC+1));
+	log_info("Timer6 Overflow_time=%dus\r\n",(T6_ARR+1)*(T6_PSC+1)/84);
+	WDG_Feed();
 	
+	//定时器5，PWM1模式，
+	Timer5_Init(10000-1,41);	//固定分频，0.5us，PWM频率=0.5us*(arr+1)
+	
+	Delay_ms(50);
+	
+	SW_CV_OUTPUT = 0;
+	
+	if((Wave_type==0) || (Wave_type==1))
+	{
+		TriggerExIN01_Init();
+	}
+	else
+	{
+		TriggerExIN23_Init();
+	}
+	WDG_Feed();
+
 	log_info("Hardware init OK! Sys running......\r\n\r\n");
 	
 	
-//	tbuff[0]=0x55;
-//	tbuff[1]=0x45;
-//	tbuff[2]=0x65;
-//	tbuff[3]=0x56;
-//	tbuff[4]=0x75;
-//	
-//	Uart1_Tx(tbuff,5);
-//	
-//	AT24CXX_WriteOneByte(0x00,0x55);
-//	AT24CXX_WriteOneByte(0x01,0x56);
-//	test=AT24CXX_ReadOneByte(0x00);
-//	log_info("AT24CXX_Read=0x%x \r\n",test);
-//	test=AT24CXX_ReadOneByte(0x01);
-//	log_info("AT24CXX_Read=0x%x \r\n",test);
+
 	
 }
 
@@ -258,26 +260,16 @@ int main(void)
 {	
 	Init_Devices();
  
-
      
 	/* Infinite loop */
 	while (1)
 	{
-//		Delay_ms(50);
-//		
-//		GPIOG->BSRRL = GPIO_Pin_10;
-//		GPIOG->BSRRL = GPIO_Pin_11;
-//		
-//		Delay_ms(50);
-//		
-//		GPIOG->BSRRH = GPIO_Pin_10;
-//		GPIOG->BSRRH = GPIO_Pin_11;
-		
+
 		Manual_Poll();
 		Memory_Poll();
 		UI_Poll();
 		Led_ShortOn_Poll();
-		
+		WDG_Feed();
 		Delay_ms(1);
 	}
 }

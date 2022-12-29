@@ -17,6 +17,10 @@ sUserOperation_t UserOperation = {
 									0
 								};
 
+sAdditionalData_t sAdditionalData={0};		//附件的参数
+uint8_t Wave_type=0;						//波形模式，不改变按键识别架构，单独设置一个标志位用来记录波形类型（0-3,0代表正脉冲，1代表负脉冲，2代表双极性正脉冲在前，3代表双极性负脉冲在前）
+//uint64_t bnc_pluse=0;
+
 uint64_t Ceiling[4] = {CEILING_V_AMPLITUDE, CEILING_PULSE, CEILING_FREQUENCY, CEILING_DURATION};
 /********************************************************************
 *	功能	：	需进行设置的参数相关信息获取
@@ -24,6 +28,7 @@ uint64_t Ceiling[4] = {CEILING_V_AMPLITUDE, CEILING_PULSE, CEILING_FREQUENCY, CE
 ******************************************************************************/
 static void SUB_SettingInfo_Get(uint8_t IsParamTypeChanged, uint8_t IsUnitSwitched, uint8_t unitbit)
 {
+	
 	if(IsParamTypeChanged)
 	{
 		UserOperation.GetSetupData.pParamNAD = &(UserOperation.GetSetupData.pModeParam->ParamNAD[UserOperation.fParamType]);
@@ -44,7 +49,15 @@ static void SUB_SettingInfo_Get(uint8_t IsParamTypeChanged, uint8_t IsUnitSwitch
 		
 		UserOperation.Modify.bUnitSwitched = !UserOperation.Modify.bUnitSwitched;
 	}
+	
+	
+	
 	UserOperation.GetSetupData.bUnit = ((UserOperation.fUnitCur & (1 << unitbit)) > 0)? 1:0;							//[V88]保持更新设置参数的单位量标识信息，修复只切换参数时单位不匹配bug
+	
+	if(UserOperation.fParamType == 2)
+	{
+		UserOperation.GetSetupData.bUnit=1;
+	}
 }
 								
 #define PARAMTYPECHANGE_N	0
@@ -122,6 +135,8 @@ static void SettingInfo_Get(uint8_t IsParamTypeChanged, uint8_t IsUnitSwitched)
 				break;
 		}
 	}
+	
+	
 }
 
 /********************************************************************
@@ -137,7 +152,7 @@ void SettingInfo_Modify(uint8_t btn_value)
 		return;
 	}	
 	
-	if(UserOperation.GetSetupData.bUnit == 1)
+	if(UserOperation.GetSetupData.bUnit == 1 )
 	{
 		value_expand = VALUE_EXPAND_105;
 	}
@@ -169,6 +184,7 @@ void SettingInfo_Modify(uint8_t btn_value)
 			{
 				if(UserOperation.GetSetupData.bUnit == 1)
 				{
+					
 					if(UserOperation.Modify.NumAfterDot == 4)
 					{
 						*UserOperation.GetSetupData.pParamNAD = 3;
@@ -203,7 +219,7 @@ void SettingInfo_Modify(uint8_t btn_value)
 					}					
 				}
 				else
-				{					
+				{			
 					UserOperation.Modify.NumAfterDot = 4;
 					
 					*UserOperation.GetSetupData.pParamNAD = 3;
@@ -221,6 +237,7 @@ void SettingInfo_Modify(uint8_t btn_value)
 				if(UserOperation.GetSetupData.bUnit == 1)
 				{
 					UserOperation.Modify.NumAfterDot = 4;
+					
 					
 					*UserOperation.GetSetupData.pParamNAD = 3;
 				}
@@ -561,10 +578,11 @@ void SettingInfo_Modify(uint8_t btn_value)
 			break;
 	}
 	
-	if(UserOperation.GetSetupData.ParamValue > UserOperation.GetSetupData.Ceiling)
+	if(UserOperation.GetSetupData.ParamValue > UserOperation.GetSetupData.Ceiling)				//判定设置值是否超上限
 	{
 		UserOperation.GetSetupData.ParamValue = UserOperation.GetSetupData.Ceiling;
 	}
+	
 	/*	UserOperation.SettingValue处理完成后返还给设置的参数	*/
 	UserOperation.GetSetupData.pModeParam->Param[UserOperation.fParamType] = UserOperation.GetSetupData.ParamValue;
 	
@@ -605,8 +623,7 @@ void Manual_Poll(void)
 					}
 					if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 					{
-						Process_COMMAND_STOP(DO_TIM4);
-						//SW_CV_OUTPUT = 0;   //关闭输出
+						Process_COMMAND_STOP();
 				    }
 					
 					return;
@@ -630,7 +647,7 @@ void Manual_Poll(void)
 				
 				Led_ParamPartOff();
 				
-				if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)
+				if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)							//运行过程
 				{
 					if(T6.MemoryUpdateCnt)
 					{
@@ -640,23 +657,17 @@ void Manual_Poll(void)
 					UO_Update(UPDATE_ALL);
 					UserOperation.Update = UO_UPDATE_VALID;
 					
-					log_info("SW_CV_OUTPUT = 1\r\n");
-					SW_CV_OUTPUT = 1;   //打开输出
-					Delay_ms(15);		//等待继电器稳定闭合
-				
-					
-					Process_COMMAND_START(DO_TIM4);
-					//SW_CV_OUTPUT = 1;   //打开输出
+					Process_COMMAND_START();												//开始运行
 					
 				}
-				else if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
+				else if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)					//运行完成
 				{
 					Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
 															
 					pLEDPAUSE = LED_SN74HC240_OFF;
 
-					Process_COMMAND_STOP(DO_TIM4);
-					//SW_CV_OUTPUT = 0;   //关闭输出
+					Process_COMMAND_STOP();
+					
 				}
 			}
 			else if(i == BTN_PAUSE)															//按下暂停键
@@ -666,22 +677,20 @@ void Manual_Poll(void)
 				
 				Led_ParamPartOff();			
 				
-				if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_RUNNING)
+				if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_RUNNING)		//如果是run状态，按下pause暂停运行
 				{
-					EXTI->IMR    &= ~(1<<0);
+					//EXTI->IMR    &= ~(1<<0);
 					
-					Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
-					//SW_CV_OUTPUT = 0;   //关闭输出		
-					Process_COMMAND_PAUSE(DO_TIM4);					
+					Process_COMMAND_PAUSE();	
+					
+					Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);			
 					pLEDPAUSE = LED_SN74HC240_ON;
 				}
-				else if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_PAUSE)
+				else if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_PAUSE)	//如果是pause状态，按下pause继续运行
 				{					
 					EXTI->IMR    |= 1<<0;
 					
-					//Delay_ms(15);		//等待继电器闭合
-					//SW_CV_OUTPUT = 1;   //打开输出
-					Process_COMMAND_CONTINUE(DO_TIM4);					
+					Process_COMMAND_CONTINUE();					
 					pLEDPAUSE = LED_SN74HC240_OFF;
 				}
 				else if(DOState.Status[DO_TIM4] == DOSTATE_STATUS_COMPLETE)
@@ -694,16 +703,10 @@ void Manual_Poll(void)
 				if(UserOperation.bPhase == UO_PHASE_UNIPHASE)
 				{
 					UserOperation.bPhase = UO_PHASE_BIPHASE;			//切换为负极性
-					Voltage_Ploar_Flag = 1;
-					Current_Ploar_Flag = 1;
 				}
 				else
 				{
-					UserOperation.bPhase = UO_PHASE_UNIPHASE;			//切换为正极性
-					
-					Voltage_Ploar_Flag = 0;
-					Current_Ploar_Flag = 0;
-					
+					UserOperation.bPhase = UO_PHASE_UNIPHASE;			//切换为正极性					
 				}
 				
 				UserOperation.fParamType = UO_PARAM_NONE;
@@ -713,23 +716,22 @@ void Manual_Poll(void)
 
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			else if(i == BTN_SINGLETRIGGER)													//按下单次输出键
+			else if(i == BTN_SINGLETRIGGER)													//按下单次输出按钮，
 			{
 				UserOperation.fParamType = UO_PARAM_NONE;
 				ParamEdit_RefreshPre();
 				
 				Led_ParamPartOff();
 				
-				if(UserOperation.fMode == UO_MODE_SINGLE)														//暂定和RUN按键类似处理方式，若不合适再行添加限定条件
-				{
-					UO_Update(UPDATE_ALL);
-					UserOperation.Update = UO_UPDATE_VALID;
+				if(UserOperation.fMode == UO_MODE_SINGLE)									//如果设备处在单个波形模式，则执行代码，如果处于其他模式，则不理会
+				{					
+					UO_Update(UPDATE_ALL);													//在该函数中计算波形参数，获取参数等
+					UserOperation.Update = UO_UPDATE_VALID;									//设置一些运行状态
+						
 					
-					log_info("SW_CV_OUTPUT = 1\r\n");
-					SW_CV_OUTPUT = 1;   //打开输出
-					Delay_ms(15);	//等待继电器闭合
 					//1:打开输出并设置定时器，2：定时器到到设定时间则关闭输出
-					Process_COMMAND_START(DO_TIM4);
+					Process_COMMAND_START();
+					
 					LedShortOn.fSinggleTrigger = LEDSHORTON_BEGIN;
 				}
 			}
@@ -748,7 +750,7 @@ void Manual_Poll(void)
 				}
 				if(DOState.Status[DO_TIM4] != DOSTATE_STATUS_COMPLETE)
 				{
-					Process_COMMAND_STOP(DO_TIM4);
+					Process_COMMAND_STOP();
 				}
 				
 				UserOperation.bVC = !UserOperation.bVC;
@@ -770,6 +772,9 @@ void Manual_Poll(void)
 					
 					UserOperation.fMode_VPre = UserOperation.fMode_CPre;										//[V111],处理逻辑调整为切换输出时模式不变
 					UserOperation.fMode = UserOperation.fMode_VPre;
+					
+					Wave_type = sAdditionalData.V_Wave_type;
+					UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE] = sAdditionalData.V_Bnc_Pulse;
 					
 					switch(UserOperation.fMode)
 					{
@@ -805,6 +810,9 @@ void Manual_Poll(void)
 					UserOperation.fMode_CPre = UserOperation.fMode_VPre;										//[V111],处理逻辑调整为切换输出时模式不变
 					UserOperation.fMode = UserOperation.fMode_CPre;
 					
+					Wave_type = sAdditionalData.C_Wave_type;
+					UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE] = sAdditionalData.C_Bnc_Pulse;
+					
 					switch(UserOperation.fMode)
 					{
 						case UO_MODE_SINGLE:
@@ -833,22 +841,72 @@ void Manual_Poll(void)
 				}
 				
 			  if((Switch.ModeCur & (1 << MODE_BIT_VC)) != (Switch.ModePre & (1 << MODE_BIT_VC)))   //MODE_BIT_VC  0
-               {
-				Switch_Ctrl(UO_PHASE_UNIPHASE);	//切换极性
+			  {
+						Switch_Ctrl(UO_PHASE_UNIPHASE);	//切换极性
 			   }
 
 				UI.fFlush = FLUSH_START;
 				
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
-			else if(i == BTN_UNITSWITCH && UserOperation.fParamType != UO_PARAM_NONE)						//按下单位切换键	
-			{
+
+#if 	0
+		else if(i == BTN_UNITSWITCH && UserOperation.fParamType != UO_PARAM_NONE)						//按下单位切换键	
+		{
 				LedShortOn.fUnitSwitch = LEDSHORTON_BEGIN;
 				
 				SettingInfo_Get(PARAMTYPECHANGE_N, UNITSWITCH_Y);
 				
 				T6.MemoryUpdateCnt = MEMORYUPDATE_UPCNT_START;
 			}
+			
+			
+#else			
+				/***********************************************************************
+				*
+				*	Wave_Type=0:单极性正电平
+				*	Wave_Type=1：单极性负电平
+				*	Wave_Type=2：双极性波形1（先正后负，50%）
+				*	Wave_Type=3：双极性波形2（先负后正，50%）	
+				*
+				***********************************************************************/					
+			else if(i == BTN_UNITSWITCH )						//按下单位切换键 改做波形模式切换按键，改按键在何时起效（不RUN的时候）
+			{
+				//if(UserOperation.bVC == SELECT_VC_V)
+				
+					Wave_type++;
+					if(Wave_type>=4)Wave_type=0;					//Wave_Type=0:单极性正电平，Wave_Type=1：单极性负电平，Wave_Type=2：双极性波形1（先正后负，50%），Wave_Type=3：双极性波形2（先负后正，50%）
+					
+					log_info("Wave_type=%d\r\n",Wave_type);
+					
+					if( (Wave_type == 0) || (Wave_type == 1) )
+					{
+						TriggerExIN01_Init();						//BNC模式下，初始化为上升沿和下降沿触发
+					}
+					else
+					{
+						TriggerExIN23_Init();						//BNC模式下，初始化为上升沿触发
+					}
+					
+					
+					if(UserOperation.bVC == SELECT_VC_V)
+					{
+						sAdditionalData.V_Wave_type = Wave_type;
+					}
+					else
+					{
+						sAdditionalData.C_Wave_type = Wave_type;
+					}
+						
+					AT24CXX_Write(230, (void *)&sAdditionalData, sizeof(sAdditionalData));
+					
+					log_info("sAdditionalData.V_Wave_type:%d\r\n",sAdditionalData.V_Wave_type);
+					log_info("sAdditionalData.C_Wave_type:%d\r\n",sAdditionalData.C_Wave_type);
+				
+				
+			}
+#endif
+
 /*******************************************************************	
 *
 *			3.模式控制按键	包含4个模式切换按键
@@ -881,7 +939,8 @@ void Manual_Poll(void)
 
 					UI.fFlush = FLUSH_START;
 				}
-				
+				SW_CV_OUTPUT = 0;
+				pLEDOUTPUT = LED_DIRECTLY_OFF;
 				UserOperation.fParamType = UO_PARAM_NONE;
 				ParamEdit_RefreshPre();
 				
@@ -912,7 +971,8 @@ void Manual_Poll(void)
 
 					UI.fFlush = FLUSH_START;
 				}
-				
+				SW_CV_OUTPUT = 0;
+				pLEDOUTPUT = LED_DIRECTLY_OFF;
 				UserOperation.fParamType = UO_PARAM_NONE;
 				ParamEdit_RefreshPre();
 				
@@ -944,6 +1004,8 @@ void Manual_Poll(void)
 					UI.fFlush = FLUSH_START;
 				}
 				
+				SW_CV_OUTPUT = 0;
+				pLEDOUTPUT = LED_DIRECTLY_OFF;
 				UserOperation.fParamType = UO_PARAM_NONE;
 				ParamEdit_RefreshPre();
 				
@@ -975,6 +1037,18 @@ void Manual_Poll(void)
 					UI.fFlush = FLUSH_START;
 				}
 				
+				if((Wave_type==0) || (Wave_type==1))
+				{
+					TriggerExIN01_Init();
+				}
+				else
+				{
+					TriggerExIN23_Init();
+				}
+				
+				SW_CV_OUTPUT = 1;
+				pLEDOUTPUT = LED_DIRECTLY_ON;
+				
 				UserOperation.fParamType = UO_PARAM_NONE;
 				ParamEdit_RefreshPre();
 				
@@ -989,7 +1063,7 @@ void Manual_Poll(void)
 */			
 			else if(i == BTN_PULSE)																				//按下设置脉宽键
 			{								
-				if(UserOperation.fMode == UO_MODE_SINGLE || UserOperation.fMode == UO_MODE_FREERUN || UserOperation.fMode == UO_MODE_TRAIN)
+				if(UserOperation.fMode == UO_MODE_SINGLE || UserOperation.fMode == UO_MODE_FREERUN || UserOperation.fMode == UO_MODE_TRAIN || UserOperation.fMode == UO_MODE_EXTBNC)
 				{
 					Led_ParamPartOff();
 					
@@ -1030,7 +1104,7 @@ void Manual_Poll(void)
 					ParamEdit_RefreshPre();
 				}
 			}
-			else if(i == BTN_AMPL)																				//按下设置幅值键
+			else if(i == BTN_AMPL)																		//按下设置幅值键
 			{
 				Led_ParamPartOff();
 				
@@ -1080,6 +1154,7 @@ void Manual_Poll(void)
 					{
 						pLEDFREQUENCY = LED_SN74HC240_ON;
 						
+						//log_info("123\r\n");
 						if(UserOperation.Update == UO_UPDATE_VALID)
 						{							
 							UserOperation.Update = UO_UPDATE_SETTING;
@@ -1095,6 +1170,7 @@ void Manual_Poll(void)
 					}
 					else
 					{
+						//log_info("456\r\n");
 						if(UserOperation.Update == UO_UPDATE_SETTING)
 						{
 							UserOperation.Update = UO_UPDATE_INVALID;
@@ -1222,14 +1298,34 @@ void Manual_Poll(void)
 			{
 				Led_ParamPartOff();
 				
+				
+				if(UserOperation.fParamType == 2)						//下限值再按下enter键后检查
+				{
+					log_info("Enter00000\r\n");
+					if(     UserOperation.GetSetupData.ParamValue < FREQ_LOWER_LIMIT )
+					{
+						log_info("Setting FREQ to FREQ_LOWER_LIMIT\r\n");
+			
+						UserOperation.GetSetupData.ParamValue = FREQ_LOWER_LIMIT;
+					}
+					UserOperation.GetSetupData.pModeParam->Param[UserOperation.fParamType] = UserOperation.GetSetupData.ParamValue;
+					log_info("Enter00000,fParamType:%d,%lld\r\n",UserOperation.fParamType,UserOperation.GetSetupData.pModeParam->Param[UserOperation.fParamType]);
+				}
+				
+				
 				UserOperation.fParamType = UO_PARAM_NONE;
 				ParamEdit_RefreshPre();
 				
 				UserOperation.Modify.fStart = 0;
 				UserOperation.Modify.NumAfterDot = 0;
 				
+				log_info("Enter111\r\n");
+				
+
+				
 				if(UserOperation.Update == UO_UPDATE_SETTING)
 				{
+					log_info("Enter222\r\n");
 					UserOperation.Update = UO_UPDATE_INVALID;
 					
 					UO_Update(UPDATE_ALL);

@@ -42,6 +42,7 @@
 .\output\timer2.o: .\User\SYSTEM\delay.h
 .\output\timer2.o: .\User\SYSTEM\debug_uart.h
 .\output\timer2.o: .\User\main.h
+.\output\timer2.o: .\User\HARDWARE\TIMER\Timer.h
 .\output\timer2.o: .\User\HARDWARE\TIMER\Timer6.h
 .\output\timer2.o: .\User\HARDWARE\LED\Led.h
 .\output\timer2.o: .\User\HARDWARE\BEEP\Beep.h

@@ -9,8 +9,8 @@
 *	备注	：	
 				ampl单位是uV/nA,即输出1V时需设置ampl值为1000000
 ******************************************************************************/
-void Output_VorC(uint8_t select_vc, uint64_t ampl, uint8_t IsEnable)
-{
+void Output_VorC(uint8_t select_vc, int64_t ampl, uint8_t IsEnable)
+{	
 	if(IsEnable == OUTPUT_ENABLE)
 	{
 		if(select_vc == SELECT_VC_V)
@@ -22,64 +22,229 @@ void Output_VorC(uint8_t select_vc, uint64_t ampl, uint8_t IsEnable)
 			}
 			else
 			{
-				//log_info("OUTPUT_ENABLE  Voltage amp=-%lld\r\n",ampl);
 				AD5542_Output(DA_CHNL_VOLT, 0 - ampl / 25 / (VALUE_EXPAND_105 / 1000));	//输出负极性
 			}
-			
 		}
 		else if(select_vc == SELECT_VC_C)
 		{		
 			if(UserOperation.bPhase == UO_PHASE_UNIPHASE)					
 			{
-				//log_info("OUTPUT_ENABLE  Current amp=%lld\r\n",ampl);
 				AD5542_Output(DA_CHNL_CURR, (ampl / (VALUE_EXPAND_105 / 1000)) / 8);					//((value/1000000--mA)/5--V)*1000--DAC REGISTER	输出正极性
 			}
 			else
 			{
-				//log_info("OUTPUT_ENABLE  Current amp=-%lld\r\n",ampl);
 				AD5542_Output(DA_CHNL_CURR, 0 - (ampl / (VALUE_EXPAND_105 / 1000)) / 8); //输出负极性
 			}		
 		}
 		
-		if(ampl > 0)
-		{
-			pTRIGGER_OUT = 0;
-			pLEDOUTPUT = LED_DIRECTLY_ON;
-			if(BEEPCTRL == BEEPCTRL_EN)
-			{
-				BEEP = BEEP_ON;
-			}
-			else
-			{
-				BEEP = BEEP_OFF;
-			}
-		}
-		else
-		{
-			pTRIGGER_OUT = 1;
-			pLEDOUTPUT = LED_DIRECTLY_OFF;
-			BEEP = BEEP_OFF;
-		}
+//		if(ampl > 0)
+//		{
+//			pTRIGGER_OUT = 0;
+//			pLEDOUTPUT = LED_DIRECTLY_ON;
+//			//if(BEEPCTRL == BEEPCTRL_EN)
+//			if(1 == BEEPCTRL_EN)
+//			{
+//				BEEP = BEEP_ON;
+//			}
+//			else
+//			{
+//				BEEP = BEEP_OFF;
+//			}
+//		}
+//		else
+//		{
+//			pTRIGGER_OUT = 1;
+//			pLEDOUTPUT = LED_DIRECTLY_OFF;
+//			BEEP = BEEP_OFF;
+//		}
 	}
 	else if(IsEnable == OUTPUT_DISABLE)
 	{
 		if(select_vc == SELECT_VC_V)
 		{
-			//log_info("OUTPUT_DISABLE  Voltage amp=%lld\r\n",ampl);
 			AD5542_Output(DA_CHNL_VOLT, 0);
 		}
 		else if(select_vc == SELECT_VC_C)
 		{
-			//log_info("OUTPUT_DISABLE  Current amp=%lld\r\n",ampl);
 			AD5542_Output(DA_CHNL_CURR, 0);
 		}		
 		
 		
-		pTRIGGER_OUT = 1;
+		//pTRIGGER_OUT = 1;
 		pLEDOUTPUT = LED_DIRECTLY_OFF;
 		BEEP = BEEP_OFF;
 	}
 }
+
+
+
+//__IO unsigned char EXIT2_Egde_Count=0;
+//void EXTI2_IRQHandler(void)
+//{
+//	if(EXTI_GetITStatus(EXTI_Line2) != RESET) 	//检测到PB2中断
+//	{
+//		
+//		EXIT2_Egde_Count++;	//记录边沿个数
+//				
+//		if(Wave_Type == 0)	//单极性波形
+//		{
+//			if(EXIT2_Egde_Count == 1)	//第一个边沿
+//			{
+//				//log_info("1\r\n");
+//				//GPIOG->ODR ^= GPIO_Pin_10;
+//				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
+//			else 	//第二个边沿
+//			{
+//				//log_info("2\r\n");
+//				//GPIOG->ODR ^= GPIO_Pin_10;
+//				EXIT2_Egde_Count=0;
+//				Output_VorC(UserOperation.bVC, 0, OUTPUT_ENABLE);
+//			}
+//		}
+//		else if(Wave_Type == 1)	//单极性波形
+//		{
+//			if(EXIT2_Egde_Count == 1)	//
+//			{
+//				//log_info("3\r\n");
+//				Output_VorC(UserOperation.bVC, (int64_t)(0-(int64_t)pPwmArrayParam[DO_TIM4]->Ampl), OUTPUT_ENABLE);
+//			}
+//			else 	//下降沿
+//			{
+//				//log_info("4\r\n");
+//				EXIT2_Egde_Count=0;
+//				Output_VorC(UserOperation.bVC, 0, OUTPUT_ENABLE);
+//			}
+//		}
+//		else if(Wave_Type == 2)							//双极性波形,先正后负
+//		{			
+//			if(EXIT2_Egde_Count == 1)
+//			{
+//				//log_info("5\r\n");
+//				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
+//			else if(EXIT2_Egde_Count == 2)
+//			{
+//				//log_info("6\r\n");
+//				Output_VorC(UserOperation.bVC, (int64_t)(0-(int64_t)pPwmArrayParam[DO_TIM4]->Ampl), OUTPUT_ENABLE);
+//			}
+//			else 
+//			{
+//				//log_info("7\r\n");
+//				EXIT2_Egde_Count=0;
+//				Output_VorC(UserOperation.bVC, 0, OUTPUT_ENABLE);
+//				
+//			}			
+//		}
+//		else				//双极性波形,先负后正
+//		{
+//			if(EXIT2_Egde_Count == 1)
+//			{
+//				//log_info("8\r\n");
+//				Output_VorC(UserOperation.bVC, (int64_t)(0-(int64_t)pPwmArrayParam[DO_TIM4]->Ampl), OUTPUT_ENABLE);
+//			}
+//			else if(EXIT2_Egde_Count == 2)
+//			{
+//				//log_info("9\r\n");
+//				Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
+//			else 
+//			{
+//				//log_info("10\r\n");
+//				EXIT2_Egde_Count=0;
+//				Output_VorC(UserOperation.bVC, 0, OUTPUT_ENABLE);
+//			}
+//		}		
+//		EXTI_ClearITPendingBit(EXTI_Line2);
+//	}
+//}
+
+
+
+///********************************************************************
+//*	功能	：	初始化
+//******************************************************************************/
+//void EXIT2_Init(void)
+//{
+//	GPIO_InitTypeDef  GPIO_InitStructure;
+//	NVIC_InitTypeDef   NVIC_InitStructure;
+//	EXTI_InitTypeDef   EXTI_InitStructure;
+
+//	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);//使能GPIOB时钟
+//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);//使能SYSCFG时钟
+//	
+
+//	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//普通输出模式
+//	//GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
+//	//GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
+//	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;//上拉
+//	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+//	
+//	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource2);//PB2 连接到中断线2
+//	
+//	 /* 配置EXTI_Line2 */
+//	EXTI_InitStructure.EXTI_Line = EXTI_Line2;//LINE2
+//	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;//中断事件
+//	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising_Falling; //上升沿触发 
+//	EXTI_InitStructure.EXTI_LineCmd = ENABLE;//使能LINE0
+//	EXTI_Init(&EXTI_InitStructure);//配置
+//  
+//	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_IRQn;//外部中断4
+//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;//抢占优先级3
+//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;//子优先级3
+//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
+//	NVIC_Init(&NVIC_InitStructure);//配置
+//	
+//	EXTI_ClearITPendingBit(EXTI_Line2);//清除中断标志位
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /********************************************************************
 *	功能	：	测试函数

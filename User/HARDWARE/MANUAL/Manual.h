@@ -30,14 +30,20 @@
 #define KBD_INPUT_CODEC_DEC_QUICK	16
 
 #define VALUE_EXPAND_105	1000000		//计算过程中各参数大单位默认小数点后6位有效，故每个参数都扩大1000000倍成整数用于显示处理
-#define VALUE_EXPAND_102	1000		//计算过程中各参数小单位默认小数点后3位有效，故每个参数都扩大1000倍成整数用于显示处理
+#define VALUE_EXPAND_102	1000			//计算过程中各参数小单位默认小数点后3位有效，故每个参数都扩大1000倍成整数用于显示处理
 
 /*	设置上限，用户设置值超限强制设置为上限值	*/
-#define CEILING_V_AMPLITUDE	(uint64_t)150      *1000000		//uV,±150V
+#define CEILING_V_AMPLITUDE	(uint64_t)80      *1000000		//uV,±80V
 #define CEILING_C_AMPLITUDE	(uint64_t)32       *1000000		//nA,32mA	//[V193]三XTR111最大电流96mA
-#define CEILING_PULSE		(uint64_t)5*60*1000*1000000		//ns,5min
-#define CEILING_FREQUENCY	(uint64_t)30       *1000000		//mHz,30KHz
-#define CEILING_DURATION	(uint64_t)7*24*60  *1000000		//us,24h
+#define CEILING_PULSE		(uint64_t)5*60*1000*1000000				//ns,5min
+#define CEILING_FREQUENCY	(uint64_t)30       *1000000000			//mHz,30KHz
+#define CEILING_DURATION	(uint64_t)7*24*60  *1000000			//us,24h
+
+/*	设置下限值，用户设置值超限强制设置为下限值	*/
+#define FREQ_LOWER_LIMIT	(200	*1000)		//mHz,0.2Hz
+
+
+
 
 extern uint64_t Ceiling[4];
 
@@ -53,23 +59,23 @@ typedef struct
 //	uint8_t  ParamNAD[UO_PARAM_DURATION];	//                 TRAIN
 	/*	参数值	*/	
 	uint64_t Param[4];
-//	uint64_t Ampl;							//SINGLE  FREERUN  TRAIN  EXTBNC
-//	uint64_t Pulse;							//SINGLE  FREERUN  TRAIN
-//	uint64_t Freq;							//        FREERUN  TRAIN
+//	uint64_t Ampl;								//SINGLE  FREERUN  TRAIN  EXTBNC
+//	uint64_t Pulse;								//SINGLE  FREERUN  TRAIN
+//	uint64_t Freq;								//        FREERUN  TRAIN
 //	uint64_t Duration;						//                 TRAIN
 }sModeParam_t;
 
 typedef struct
-{										//获取参数信息，管理直接影响设置变量，减少同种判断处理
-	uint8_t  		bUnit;				//正在设置参数单位，0--小单位	1--大单位（大单位为小单位1000倍）
-	sModeParam_t	*pModeParam;		//正在设置对应模式参数首地址
-	uint8_t			*pParamNAD;			//正在设置参数小数点位数
-	uint64_t		ParamValue;			//正在设置参数值
-	uint64_t		Ceiling;			//正在设置参数上限值，超限强制设置为上限
+{																//获取参数信息，管理直接影响设置变量，减少同种判断处理
+	uint8_t  		bUnit;						//正在设置参数单位，0--小单位	1--大单位（大单位为小单位1000倍）
+	sModeParam_t	*pModeParam;				//正在设置对应模式参数首地址
+	uint8_t			*pParamNAD;					//正在设置参数小数点位数
+	uint64_t		ParamValue;					//正在设置参数值
+	uint64_t		Ceiling;					//正在设置参数上限值，超限强制设置为上限
 }sGetSetupData_t;
 
 typedef struct
-{										//修改参数值
+{																//修改参数值
 	uint8_t fStart;						//0--设置完成  1--设置起始状态  2--设置进行中。参数标志位，若为1时，用户按5，则此时设置参数值为5，置此标志位为2，参数左移一位开始正常输入
 	uint8_t bUnitSwitched;				//单位切换标志位，用于解决参数设置过程中切换单位导致处理混乱问题.单位切换后翻转状态，为1时若输入数字先清零再输入，参数切换后恢复置0
 	uint8_t NumAfterDot;				//0--none	   1~6--即将设置的小数点后位数
@@ -160,6 +166,21 @@ typedef struct
 	sModify_t 		Modify;				//通过输入数字或箭头对参数进行修改
 	UO_UPDATE_E		Update;				//当前输出单数有效性
 }sUserOperation_t;
+
+
+
+typedef struct  __attribute__ ((__packed__))		//附加的参数
+{												
+	uint8_t  		V_Wave_type;					//波形类型
+	uint8_t  		C_Wave_type;					//波形类型
+	uint64_t		V_Bnc_Pulse;					//外部触发模式的宽度，仅在波形2、3起作用
+	uint64_t		C_Bnc_Pulse;					//外部触发模式的宽度，仅在波形2、3起作用
+}sAdditionalData_t;
+
+extern sAdditionalData_t sAdditionalData;
+extern uint8_t Wave_type;
+//extern uint64_t bnc_pluse;
+
 extern sUserOperation_t UserOperation;
 
 void SettingInfo_Modify(uint8_t btn_value);

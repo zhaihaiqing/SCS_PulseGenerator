@@ -42,6 +42,7 @@
 .\output\codec.o: .\User\SYSTEM\delay.h
 .\output\codec.o: .\User\SYSTEM\debug_uart.h
 .\output\codec.o: .\User\main.h
+.\output\codec.o: .\User\HARDWARE\TIMER\Timer.h
 .\output\codec.o: .\User\HARDWARE\TIMER\Timer6.h
 .\output\codec.o: .\User\HARDWARE\LED\Led.h
 .\output\codec.o: .\User\HARDWARE\BEEP\Beep.h
@@ -63,5 +64,4 @@
 .\output\codec.o: .\User\HARDWARE\SSD1961\SSD1961.h
 .\output\codec.o: .\User\HARDWARE\UI\UI.h
 .\output\codec.o: .\User\HARDWARE\OUTPUT\Output.h
-.\output\codec.o: .\User\HARDWARE\TIMER\Timer2.h
 .\output\codec.o: .\User\HARDWARE\WDG\Wdg.h

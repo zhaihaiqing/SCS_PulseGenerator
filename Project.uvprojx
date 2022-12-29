@@ -52,7 +52,7 @@
           <OutputName>STM32F4_DEMO</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>1</CreateHexFile>
+          <CreateHexFile>0</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
           <ListingPath>.\Listings\</ListingPath>
@@ -399,14 +399,54 @@
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
+              <FileName>Manual.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\MANUAL\Manual.c</FilePath>
+            </File>
+            <File>
+              <FileName>Switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\SWITCH\Switch.c</FilePath>
+            </File>
+            <File>
+              <FileName>Output.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\OUTPUT\Output.c</FilePath>
+            </File>
+            <File>
+              <FileName>Trigger.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\INPUT\Trigger.c</FilePath>
+            </File>
+            <File>
+              <FileName>AT24C64MemData.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\AT24C64\AT24C64MemData.c</FilePath>
+            </File>
+            <File>
+              <FileName>Pulse.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\PULSE\Pulse.c</FilePath>
+            </File>
+            <File>
+              <FileName>PulseTran.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\PULSETRAN\PulseTran.c</FilePath>
+            </File>
+            <File>
+              <FileName>UI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\UI\UI.c</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\HARDWARE\TIMER\Timer.c</FilePath>
+            </File>
+            <File>
               <FileName>Timer6.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\User\HARDWARE\TIMER\Timer6.c</FilePath>
-            </File>
-            <File>
-              <FileName>Timer2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\TIMER\Timer2.c</FilePath>
             </File>
             <File>
               <FileName>Led.c</FileName>
@@ -434,26 +474,6 @@
               <FilePath>.\User\HARDWARE\CODEC\Codec.c</FilePath>
             </File>
             <File>
-              <FileName>Manual.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\MANUAL\Manual.c</FilePath>
-            </File>
-            <File>
-              <FileName>Switch.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\SWITCH\Switch.c</FilePath>
-            </File>
-            <File>
-              <FileName>Output.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\OUTPUT\Output.c</FilePath>
-            </File>
-            <File>
-              <FileName>Trigger.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\INPUT\Trigger.c</FilePath>
-            </File>
-            <File>
               <FileName>AT24C64IIC.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\User\HARDWARE\AT24C64\AT24C64IIC.c</FilePath>
@@ -462,16 +482,6 @@
               <FileName>AT24C64.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\User\HARDWARE\AT24C64\AT24C64.c</FilePath>
-            </File>
-            <File>
-              <FileName>AT24C64MemData.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\AT24C64\AT24C64MemData.c</FilePath>
-            </File>
-            <File>
-              <FileName>Pulse.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\PULSE\Pulse.c</FilePath>
             </File>
             <File>
               <FileName>Usart1.c</FileName>
@@ -494,19 +504,9 @@
               <FilePath>.\User\HARDWARE\PROTOCOL\Protocol.c</FilePath>
             </File>
             <File>
-              <FileName>PulseTran.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\PULSETRAN\PulseTran.c</FilePath>
-            </File>
-            <File>
               <FileName>SSD1961.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\User\HARDWARE\SSD1961\SSD1961.c</FilePath>
-            </File>
-            <File>
-              <FileName>UI.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\HARDWARE\UI\UI.c</FilePath>
             </File>
             <File>
               <FileName>Wdg.c</FileName>

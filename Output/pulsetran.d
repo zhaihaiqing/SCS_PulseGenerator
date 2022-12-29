@@ -42,6 +42,7 @@
 .\output\pulsetran.o: .\User\SYSTEM\delay.h
 .\output\pulsetran.o: .\User\SYSTEM\debug_uart.h
 .\output\pulsetran.o: .\User\main.h
+.\output\pulsetran.o: .\User\HARDWARE\TIMER\Timer.h
 .\output\pulsetran.o: .\User\HARDWARE\TIMER\Timer6.h
 .\output\pulsetran.o: .\User\HARDWARE\LED\Led.h
 .\output\pulsetran.o: .\User\HARDWARE\BEEP\Beep.h
@@ -63,5 +64,4 @@
 .\output\pulsetran.o: .\User\HARDWARE\SSD1961\SSD1961.h
 .\output\pulsetran.o: .\User\HARDWARE\UI\UI.h
 .\output\pulsetran.o: .\User\HARDWARE\OUTPUT\Output.h
-.\output\pulsetran.o: .\User\HARDWARE\TIMER\Timer2.h
 .\output\pulsetran.o: .\User\HARDWARE\WDG\Wdg.h

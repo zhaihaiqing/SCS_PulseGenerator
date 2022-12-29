@@ -42,9 +42,10 @@
 .\output\debug_uart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 .\output\debug_uart.o: .\User\SYSTEM\delay.h
 .\output\debug_uart.o: .\User\SYSTEM\debug_uart.h
+.\output\debug_uart.o: .\User\HARDWARE\TIMER\Timer.h
+.\output\debug_uart.o: .\User\main.h
 .\output\debug_uart.o: .\User\HARDWARE\TIMER\Timer6.h
 .\output\debug_uart.o: .\User\HARDWARE\LED\Led.h
-.\output\debug_uart.o: .\User\main.h
 .\output\debug_uart.o: .\User\HARDWARE\BEEP\Beep.h
 .\output\debug_uart.o: .\User\HARDWARE\KEY\Key.h
 .\output\debug_uart.o: .\User\HARDWARE\DAC\DAC.h
@@ -64,5 +65,4 @@
 .\output\debug_uart.o: .\User\HARDWARE\SSD1961\SSD1961.h
 .\output\debug_uart.o: .\User\HARDWARE\UI\UI.h
 .\output\debug_uart.o: .\User\HARDWARE\OUTPUT\Output.h
-.\output\debug_uart.o: .\User\HARDWARE\TIMER\Timer2.h
 .\output\debug_uart.o: .\User\HARDWARE\WDG\Wdg.h

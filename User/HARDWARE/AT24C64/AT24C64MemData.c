@@ -172,7 +172,7 @@ void Memory_ConfigLoad(void)
 		
 		AT24CXX_Write(0, Tbl_MemData, MEMDATA_LEN);
 	}
-	else																					//读取成功
+	else																					//EEPROM 读取成功
 	{
 		UserOperation.bPhase					= (UO_PHASE_E)Array_Read(ADDR_BFLIP,					1);
 		UserOperation.bVC						= Array_Read(ADDR_BVC,						1);
@@ -318,6 +318,24 @@ void Memory_ConfigLoad(void)
 				break;
 		}
 	}
+	
+	
+	AT24CXX_Read(230, (void *)&sAdditionalData, sizeof(sAdditionalData));
+	
+	if(sAdditionalData.V_Wave_type>3)sAdditionalData.V_Wave_type=0;
+	if(sAdditionalData.C_Wave_type>3)sAdditionalData.C_Wave_type=0;
+	
+	if(UserOperation.bVC == SELECT_VC_V)
+	{
+		Wave_type = sAdditionalData.V_Wave_type;
+		UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE] = sAdditionalData.V_Bnc_Pulse;
+	}
+	else
+	{
+		Wave_type = sAdditionalData.C_Wave_type;
+		UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE] = sAdditionalData.C_Bnc_Pulse;
+	}
+	
 	
 	#if(TEST_AT24CXX)
 		AT24CXX_Read(0, Tbl_MemData, MEMDATA_LEN);

@@ -49,21 +49,48 @@ void EXTI15_10_IRQHandler(void)
 	
 	
 	
-	if(EXTI->PR & (1 << 15)) 	//检测到PB15中断，信号来自TIM4_CH3
-	{
-		//GPIOG->ODR ^= GPIO_Pin_10;
-		
-		if(pTRIGGER_PWM == 1)
-		{
-			  Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
-		}
-		else if(pTRIGGER_PWM == 0)
-		{
-			  Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
-		}
-		
-		EXTI->PR |= 1 << 15;
-	}
+//	if(EXTI->PR & (1 << 15)) 	//检测到PB15中断，信号来自TIM4_CH3
+//	{
+//		//GPIOG->ODR ^= GPIO_Pin_10;
+//		
+//		if(Wave_Type == 0)	//单极性波形
+//		{
+//			if(pTRIGGER_PWM == 1)	//上升沿
+//			{
+//					Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
+//			else if(pTRIGGER_PWM == 0)	//下降沿
+//			{
+//					Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
+//			}
+//		}
+//		else if(Wave_Type == 1)	//单极性波形
+//		{
+//			if(pTRIGGER_PWM == 1)	//上升沿
+//			{
+//					Output_VorC(UserOperation.bVC, 0-pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
+//			else if(pTRIGGER_PWM == 0)	//下降沿
+//			{
+//					Output_VorC(UserOperation.bVC, 0, OUTPUT_DISABLE);
+//			}
+//		}
+//		else							//双极性波形
+//		{
+//			if(pTRIGGER_PWM == 1)	//上升沿
+//			{
+//					Output_VorC(UserOperation.bVC, pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
+//			else if(pTRIGGER_PWM == 0)	//下降沿
+//			{
+//					Output_VorC(UserOperation.bVC, 0-pPwmArrayParam[DO_TIM4]->Ampl, OUTPUT_ENABLE);
+//			}
+//		}
+//		
+//		
+//		
+//		EXTI->PR |= 1 << 15;
+//	}
 }
 
 /********************************************************************

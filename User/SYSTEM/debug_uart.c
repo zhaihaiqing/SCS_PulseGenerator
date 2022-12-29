@@ -98,9 +98,12 @@ void USART6_IRQHandler(void)
 void Usart6_Init(u32 bound)
 {
 	//GPIO端口设置
-    GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
+	
+#if EN_USART6_RX
 	NVIC_InitTypeDef NVIC_InitStructure;
+#endif	
 	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG,ENABLE); //使能GPIOA时钟
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6,ENABLE);//使能USART1时钟

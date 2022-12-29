@@ -157,10 +157,10 @@ extern sColor_t Color;
 #define PG1_RUN_START_X						PG1_VC_START_X + PG1_VC_AREA_WIDTH + 6
 #define PG1_RUN_START_Y						(PG1_Y_LINE_END - PG1_VC_AREA_HEIGHT)
 
-#define PG1_FLIP_AREA_WIDTH					158
-#define PG1_FLIP_AREA_HEIGHT				42
-#define PG1_FLIP_START_X					(PG1_RUN_START_X + PG1_RUN_AREA_WIDTH + 6)
-#define PG1_FLIP_START_Y					(PG1_Y_LINE_END - PG1_VC_AREA_HEIGHT)
+#define PG1_FLIP_AREA_WIDTH					158											//宽度
+#define PG1_FLIP_AREA_HEIGHT				42											//高度
+#define PG1_FLIP_START_X					(PG1_RUN_START_X + PG1_RUN_AREA_WIDTH + 6)	//起始位置X
+#define PG1_FLIP_START_Y					(PG1_Y_LINE_END - PG1_VC_AREA_HEIGHT)		//起始位置Y
 
 
 /*		MODE 显示区		*/

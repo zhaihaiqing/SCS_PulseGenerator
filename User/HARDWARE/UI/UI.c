@@ -374,7 +374,7 @@ static void sprintf_value(uint8_t unitsize, char* p, uint64_t value, uint8_t dec
 static void ValueDisplay_Control(uint8_t unitsize, char* p, uint64_t value, uint8_t IsTwinkleEnable)
 {	
 	if(unitsize)
-	{
+	{		
 		if(IsTwinkleEnable)
 		{
 			if(T6.RunCnt % TWINKLE_CYCLETIME < TWINKLE_DIMTIME)					//闪烁
@@ -383,6 +383,8 @@ static void ValueDisplay_Control(uint8_t unitsize, char* p, uint64_t value, uint
 			}
 			else
 			{
+				
+				
 				sprintf_value(unitsize, p, value, UserOperation.Modify.NumAfterDot, 10);
 				
 				if(UserOperation.Modify.fStart == 1)
@@ -443,13 +445,146 @@ static void UI_ContentScan(void)
 	
 	if(UserOperation.bPhase == UO_PHASE_UNIPHASE)																				//[V145]，添加判断右值处理，修复原逻辑逆反bug
 	{
-		sprintf((char*)UI.Str_PG1_Flip_Cur, "UNIPHASE");
+		//sprintf((char*)UI.Str_PG1_Flip_Cur, "UNIPHASE");
+		//sprintf((char*)UI.Str_PG1_Flip_Cur, "_|-|_");
 		pLEDFLIP = LED_SN74HC240_OFF;
 	}
 	else
 	{
-		sprintf((char*)UI.Str_PG1_Flip_Cur, "BIOPHASE");
+		//sprintf((char*)UI.Str_PG1_Flip_Cur, "BIOPHASE");
+		//sprintf((char*)UI.Str_PG1_Flip_Cur, "-|_|-");
 		pLEDFLIP = LED_SN74HC240_ON;
+	}
+	
+	if(Wave_type == 0)
+	{
+		
+		//sprintf((char*)UI.Str_PG1_Flip_Cur, "_|-|_");
+		uint16_t i=0;
+		//LCD_Fill(PG1_FLIP_START_X, PG1_FLIP_START_Y, PG1_FLIP_START_X+PG1_FLIP_AREA_WIDTH, PG1_FLIP_START_Y-PG1_FLIP_AREA_HEIGHT-1, COLOR_FLIP_AREA);			//先清屏
+		sprintf((char*)UI.Str_PG1_Flip_Cur, " ");//利用已有逻辑进行清屏
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+60+i ,PG1_FLIP_START_Y+21,COLOR_FLIP_FONT);
+		}
+		for(i=0;i<18;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+80 ,PG1_FLIP_START_Y+21-i,COLOR_FLIP_FONT);
+		}
+		for(i=0;i<40;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+80+i ,PG1_FLIP_START_Y+21-18,COLOR_FLIP_FONT);
+		}
+		for(i=0;i<18;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+120 ,PG1_FLIP_START_Y+21-i,COLOR_FLIP_FONT);
+		}
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+120+i ,PG1_FLIP_START_Y+21,COLOR_FLIP_FONT);
+		}		
+		//pLEDFLIP = LED_SN74HC240_OFF;
+	}
+	else if(Wave_type == 1)
+	{
+		//sprintf((char*)UI.Str_PG1_Flip_Cur, "-|_|-");
+		uint16_t i=0;
+		//LCD_Fill(PG1_FLIP_START_X, PG1_FLIP_START_Y, PG1_FLIP_START_X+PG1_FLIP_AREA_WIDTH, PG1_FLIP_START_Y-PG1_FLIP_AREA_HEIGHT-1, COLOR_FLIP_AREA);			//先清屏
+		sprintf((char*)UI.Str_PG1_Flip_Cur, "  ");//利用已有逻辑进行清屏
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+60+i ,PG1_FLIP_START_Y+21,COLOR_FLIP_FONT);
+		}
+		for(i=0;i<18;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+80 ,PG1_FLIP_START_Y+21+i,COLOR_FLIP_FONT);
+		}
+		for(i=0;i<40;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+80+i ,PG1_FLIP_START_Y+21+18,COLOR_FLIP_FONT);
+		}
+		for(i=0;i<18;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+120 ,PG1_FLIP_START_Y+21+i,COLOR_FLIP_FONT);
+		}
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+120+i ,PG1_FLIP_START_Y+21,COLOR_FLIP_FONT);
+		}
+		//pLEDFLIP = LED_SN74HC240_ON;
+	}
+	else if(Wave_type == 2)
+	{
+		//sprintf((char*)UI.Str_PG1_Flip_Cur, "_|-|_|-");
+		uint16_t i=0;
+		//LCD_Fill(PG1_FLIP_START_X, PG1_FLIP_START_Y, PG1_FLIP_START_X+PG1_FLIP_AREA_WIDTH, PG1_FLIP_START_Y-PG1_FLIP_AREA_HEIGHT-1, COLOR_FLIP_AREA);			//先清屏
+		sprintf((char*)UI.Str_PG1_Flip_Cur, "   ");//利用已有逻辑进行清屏
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+60+i ,PG1_FLIP_START_Y+21,COLOR_FLIP_FONT);			//_
+		}
+		for(i=0;i<18;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+80 ,PG1_FLIP_START_Y+21-i,COLOR_FLIP_FONT);			//|
+		}
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+80+i ,PG1_FLIP_START_Y+21-18,COLOR_FLIP_FONT);		//-
+		}
+		for(i=0;i<36;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+100 ,PG1_FLIP_START_Y+21-18+i,COLOR_FLIP_FONT);		//|
+		}
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+100+i ,PG1_FLIP_START_Y+21+18,COLOR_FLIP_FONT);		//-
+		}
+		for(i=0;i<18;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+120 ,PG1_FLIP_START_Y+21+i,COLOR_FLIP_FONT);		//|
+		}
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+120+i ,PG1_FLIP_START_Y+21,COLOR_FLIP_FONT);		//-
+		}
+		
+		//pLEDFLIP = LED_SN74HC240_ON;
+	}
+	else
+	{
+		//sprintf((char*)UI.Str_PG1_Flip_Cur, "-|_|-|_");
+		uint16_t i=0;
+		//LCD_Fill(PG1_FLIP_START_X, PG1_FLIP_START_Y, PG1_FLIP_START_X+PG1_FLIP_AREA_WIDTH, PG1_FLIP_START_Y-PG1_FLIP_AREA_HEIGHT-1, COLOR_FLIP_AREA);			//先清屏
+		sprintf((char*)UI.Str_PG1_Flip_Cur, "    ");//利用已有逻辑进行清屏
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+60+i ,PG1_FLIP_START_Y+21,COLOR_FLIP_FONT);			//_
+		}
+		for(i=0;i<18;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+80 ,PG1_FLIP_START_Y+21+i,COLOR_FLIP_FONT);			//|
+		}
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+80+i ,PG1_FLIP_START_Y+21+18,COLOR_FLIP_FONT);		//-
+		}
+		for(i=0;i<36;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+100 ,PG1_FLIP_START_Y+21+18-i,COLOR_FLIP_FONT);		//|
+		}
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+100+i ,PG1_FLIP_START_Y+21-18,COLOR_FLIP_FONT);		//-
+		}
+		for(i=0;i<18;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+120 ,PG1_FLIP_START_Y+21-i,COLOR_FLIP_FONT);		//|
+		}
+		for(i=0;i<20;i++)
+		{
+			LCD_Fast_DrawPoint(PG1_FLIP_START_X+120+i ,PG1_FLIP_START_Y+21,COLOR_FLIP_FONT);		//-
+		}
+		//pLEDFLIP = LED_SN74HC240_ON;
 	}
 	
 	if(UserOperation.bVC == SELECT_VC_V)
@@ -606,11 +741,11 @@ static void UI_ContentScan(void)
 				{
 					if(UserOperation.fParamType == UO_PARAM_FREQ && UserOperation.Modify.fStart)
 					{
-						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.V_ModeFreeRun.Param[UO_PARAM_FREQ], TWINKLE_ENABLE);
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.V_ModeFreeRun.Param[UO_PARAM_FREQ], TWINKLE_ENABLE);
 					}
 					else
 					{
-						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.V_ModeFreeRun.Param[UO_PARAM_FREQ], TWINKLE_DISABLE);
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.V_ModeFreeRun.Param[UO_PARAM_FREQ], TWINKLE_DISABLE);
 					}					
 					sprintf((char*)UI.Str_PG1_Unit_Frequency_Cur, "Hz");
 				}				
@@ -698,11 +833,11 @@ static void UI_ContentScan(void)
 				{
 					if(UserOperation.fParamType == UO_PARAM_FREQ && UserOperation.Modify.fStart)
 					{
-						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.V_ModeTrain.Param[UO_PARAM_FREQ], TWINKLE_ENABLE);
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.V_ModeTrain.Param[UO_PARAM_FREQ], TWINKLE_ENABLE);
 					}
 					else
 					{
-						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.V_ModeTrain.Param[UO_PARAM_FREQ], TWINKLE_DISABLE);
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.V_ModeTrain.Param[UO_PARAM_FREQ], TWINKLE_DISABLE);
 					}
 					sprintf((char*)UI.Str_PG1_Unit_Frequency_Cur, "Hz");
 				}
@@ -741,13 +876,52 @@ static void UI_ContentScan(void)
 				sprintf((char*)UI.Str_PG1_Mode_Train_Cur, 	"Train");
 				sprintf((char*)UI.Str_PG1_Mode_ExtBnc_Cur, 	"ExtBnc");
 				
-				sprintf((char*)UI.Str_PG1_Param_Pulse_Cur, 	"");
+				//sprintf((char*)UI.Str_PG1_Param_Pulse_Cur, 	"");
+			
+				sprintf((char*)UI.Str_PG1_Param_Pulse_Cur, 	"PulseWidth");
+			
 				sprintf((char*)UI.Str_PG1_Param_Amplitude_Cur, "Amplitude");
 				sprintf((char*)UI.Str_PG1_Param_Frequency_Cur, "");
 				sprintf((char*)UI.Str_PG1_Param_Duration_Cur, "");
 				
-				sprintf((char*)UI.Str_PG1_Value_Pulse_Cur, 	"");
-				sprintf((char*)UI.Str_PG1_Unit_Pulse_Cur, 	"");
+				//sprintf((char*)UI.Str_PG1_Value_Pulse_Cur, 	"");
+				//sprintf((char*)UI.Str_PG1_Unit_Pulse_Cur, 	"");
+			
+			
+			
+				if(UserOperation.fUnitCur & (1 << UO_UNIT_BIT_PULSE))
+				{
+					if(UserOperation.fParamType == UO_PARAM_PULSE && UserOperation.Modify.fStart)
+					{
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Pulse_Cur, UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE], TWINKLE_ENABLE);
+					}
+					else
+					{
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Pulse_Cur, UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE], TWINKLE_DISABLE);
+					}
+					sprintf((char*)UI.Str_PG1_Unit_Pulse_Cur, "ms");
+				}
+				else
+				{
+					if(UserOperation.fParamType == UO_PARAM_PULSE && UserOperation.Modify.fStart)
+					{
+						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Pulse_Cur, UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE], TWINKLE_ENABLE);
+					}
+					else
+					{
+						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Pulse_Cur, UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE], TWINKLE_DISABLE);
+					}
+					sprintf((char*)UI.Str_PG1_Unit_Pulse_Cur, "~s");
+				}
+				
+				//log_info("Exbnc_Pluse:%lld\r\n",UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE]);
+				
+				if( sAdditionalData.V_Bnc_Pulse != UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE] )
+				{
+					sAdditionalData.V_Bnc_Pulse = UserOperation.V_ModeExtBnc.Param[UO_PARAM_PULSE];
+					AT24CXX_Write(230, (void *)&sAdditionalData, sizeof(sAdditionalData));
+				}
+				
 				
 				if(UserOperation.fUnitCur & (1 << UO_UNIT_BIT_AMPL_V))
 				{
@@ -940,11 +1114,11 @@ static void UI_ContentScan(void)
 				{
 					if(UserOperation.fParamType == UO_PARAM_FREQ && UserOperation.Modify.fStart)
 					{
-						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.C_ModeFreeRun.Param[UO_PARAM_FREQ], TWINKLE_ENABLE);
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.C_ModeFreeRun.Param[UO_PARAM_FREQ], TWINKLE_ENABLE);
 					}
 					else
 					{
-						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.C_ModeFreeRun.Param[UO_PARAM_FREQ], TWINKLE_DISABLE);
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.C_ModeFreeRun.Param[UO_PARAM_FREQ], TWINKLE_DISABLE);
 					}					
 					sprintf((char*)UI.Str_PG1_Unit_Frequency_Cur, "Hz");
 				}				
@@ -1032,11 +1206,11 @@ static void UI_ContentScan(void)
 				{
 					if(UserOperation.fParamType == UO_PARAM_FREQ && UserOperation.Modify.fStart)
 					{
-						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.C_ModeTrain.Param[UO_PARAM_FREQ], TWINKLE_ENABLE);
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.C_ModeTrain.Param[UO_PARAM_FREQ], TWINKLE_ENABLE);
 					}
 					else
 					{
-						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.C_ModeTrain.Param[UO_PARAM_FREQ], TWINKLE_DISABLE);
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Frequency_Cur, UserOperation.C_ModeTrain.Param[UO_PARAM_FREQ], TWINKLE_DISABLE);
 					}
 					sprintf((char*)UI.Str_PG1_Unit_Frequency_Cur, "Hz");
 				}
@@ -1075,13 +1249,48 @@ static void UI_ContentScan(void)
 				sprintf((char*)UI.Str_PG1_Mode_Train_Cur, 	"Train");
 				sprintf((char*)UI.Str_PG1_Mode_ExtBnc_Cur, 	"ExtBnc");
 				
-				sprintf((char*)UI.Str_PG1_Param_Pulse_Cur, 	"");
+				//sprintf((char*)UI.Str_PG1_Param_Pulse_Cur, 	"");
 				sprintf((char*)UI.Str_PG1_Param_Amplitude_Cur, "Amplitude");
 				sprintf((char*)UI.Str_PG1_Param_Frequency_Cur, "");
 				sprintf((char*)UI.Str_PG1_Param_Duration_Cur, "");
 				
-				sprintf((char*)UI.Str_PG1_Value_Pulse_Cur, 	"");
-				sprintf((char*)UI.Str_PG1_Unit_Pulse_Cur, 	"");
+//				sprintf((char*)UI.Str_PG1_Value_Pulse_Cur, 	"");
+//				sprintf((char*)UI.Str_PG1_Unit_Pulse_Cur, 	"");
+			
+				sprintf((char*)UI.Str_PG1_Param_Pulse_Cur, 	"PulseWidth");
+			
+			
+				if(UserOperation.fUnitCur & (1 << UO_UNIT_BIT_PULSE))
+				{
+					if(UserOperation.fParamType == UO_PARAM_PULSE && UserOperation.Modify.fStart)																//正在设置此参数
+					{
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Pulse_Cur, UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE], TWINKLE_ENABLE);	//闪烁处理
+					}
+					else
+					{
+						ValueDisplay_Control(UO_UNIT_BIG, (char*)UI.Str_PG1_Value_Pulse_Cur, UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE], TWINKLE_DISABLE);
+					}
+					sprintf((char*)UI.Str_PG1_Unit_Pulse_Cur, "ms");
+				}
+				else
+				{
+					if(UserOperation.fParamType == UO_PARAM_PULSE && UserOperation.Modify.fStart)																//正在设置此参数
+					{
+						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Pulse_Cur, UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE], TWINKLE_ENABLE);	//闪烁处理
+					}
+					else
+					{
+						ValueDisplay_Control(UO_UNIT_SMALL, (char*)UI.Str_PG1_Value_Pulse_Cur, UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE], TWINKLE_DISABLE);
+					}
+					sprintf((char*)UI.Str_PG1_Unit_Pulse_Cur, "~s");
+				}
+				
+				if( sAdditionalData.C_Bnc_Pulse != UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE])
+				{
+					sAdditionalData.C_Bnc_Pulse = UserOperation.C_ModeExtBnc.Param[UO_PARAM_PULSE];
+					AT24CXX_Write(230, (void *)&sAdditionalData, sizeof(sAdditionalData));
+				}
+				
 				
 				if(UserOperation.fUnitCur & (1 << UO_UNIT_BIT_AMPL_C))
 				{
@@ -1273,8 +1482,8 @@ static void PartialArea_Refresh(uint8_t disparea, u16 x, u16 y, u16 width, u16 h
 		case DISP_AREA_STATUS_FLIP:
 			
 			LCD_Fill(x, y, x+width, y+height, backcolor);
-			LCD_ShowString_WithColor(x +  5, y+18, width, height, 16, (u8*)"STATE |", backcolor, pointcolor);
-			LCD_ShowString_WithColor(x + 68, y+10, width, height, fontsize, displaycur, backcolor, pointcolor);
+			LCD_ShowString_WithColor(x +  5, y+18, width, height, 16, (u8*)"TYPE:", backcolor, pointcolor);
+			//LCD_ShowString_WithColor(x + 68, y+10, width, height, fontsize, displaycur, backcolor, pointcolor);
 		
 			break;
 		
@@ -1618,7 +1827,7 @@ void UI_Poll(void)
 {
 	static uint8_t firstin = 0;
 	
-	UI_ContentScan();				//实时更新各显示内容
+	UI_ContentScan();					//实时更新各显示内容
 	UI_DisplayFlush();				//对有变化内容进行刷新显示
 	
 	if(firstin == 0)

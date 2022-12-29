@@ -16,14 +16,15 @@
 
 //	当前设置下，SPI_CLK=6.72MHz
 
-static void AD5542_WriteA( int32_t val)
+static void AD5542_WriteA( int64_t val)
 {
 	unsigned short reg_val;
 	unsigned char i=0;
 	
-	//log_info("Write A=%x\r\n",val);
+	//log_info("Write A=%lld\r\n",val);
 		
-	reg_val=(signed short)(val*32768.0/4096.0)+0x8000;	//转换为DAC数据寄存器值	
+	//reg_val=(signed short)(val*32768.0/4096.0)+0x8000;	//转换为DAC数据寄存器值	
+	reg_val=(signed short)(val*8)+0x8000;
 	
 	DA_LDAC_H();
 	DA_CS1_L();
@@ -31,7 +32,7 @@ static void AD5542_WriteA( int32_t val)
 	
 	for(i=0;i<16;i++)
 	{
-		if(((reg_val<<i)&0x8000)==0x8000) 
+		if((reg_val<<i)&0x8000) 
 		{
 			DA_SDIN_H();
 		}
@@ -57,13 +58,15 @@ static void AD5542_WriteA( int32_t val)
 	       DA_CS2_H();
 }
 
-static void AD5542_WriteB(int32_t val)
+static void AD5542_WriteB(int64_t val)
 {
 	unsigned short reg_val;
 	unsigned char i=0;
 	
+	//log_info("Write B=%lld\r\n",val);
 	
-	reg_val=(signed short)(val*32768.0/4096.0)+0x8000;	//转换为DAC数据寄存器值	
+	//reg_val=(signed short)(val*32768.0/4096.0)+0x8000;	//转换为DAC数据寄存器值	
+	reg_val=(signed short)(val*8)+0x8000;
 	
 	DA_LDAC_H();
 	DA_CS1_H();
@@ -71,7 +74,7 @@ static void AD5542_WriteB(int32_t val)
 	
 	for(i=0;i<16;i++)
 	{
-		if(((reg_val<<i)&0x8000)==0x8000) 
+		if((reg_val<<i)&0x8000) 
 		{
 			DA_SDIN_H();
 		}
@@ -140,13 +143,13 @@ static void AD5542_WriteB(int32_t val)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void AD5542_Output(uint8_t ch, int32_t value)
+void AD5542_Output(uint8_t ch, int64_t value)
 {
 	static uint8_t  ch_pre = 0xff;
-	static uint32_t value_pre = 0xff;
+	static int64_t value_pre = 0xff;
 	
 	
-	//log_info("\r\nch=%d value=%d\r\n\r\n",ch,value);
+	//log_info("ch=%d value=%lld\r\n",ch,value);
 	if(ch_pre == ch && value_pre == value)
 	{
 		return;

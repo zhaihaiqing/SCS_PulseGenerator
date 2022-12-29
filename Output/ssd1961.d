@@ -42,6 +42,7 @@
 .\output\ssd1961.o: .\User\SYSTEM\delay.h
 .\output\ssd1961.o: .\User\SYSTEM\debug_uart.h
 .\output\ssd1961.o: .\User\main.h
+.\output\ssd1961.o: .\User\HARDWARE\TIMER\Timer.h
 .\output\ssd1961.o: .\User\HARDWARE\TIMER\Timer6.h
 .\output\ssd1961.o: .\User\HARDWARE\LED\Led.h
 .\output\ssd1961.o: .\User\HARDWARE\BEEP\Beep.h
@@ -63,6 +64,5 @@
 .\output\ssd1961.o: .\User\HARDWARE\SSD1961\SSD1961.h
 .\output\ssd1961.o: .\User\HARDWARE\UI\UI.h
 .\output\ssd1961.o: .\User\HARDWARE\OUTPUT\Output.h
-.\output\ssd1961.o: .\User\HARDWARE\TIMER\Timer2.h
 .\output\ssd1961.o: .\User\HARDWARE\WDG\Wdg.h
 .\output\ssd1961.o: User\HARDWARE\SSD1961\FONT.h

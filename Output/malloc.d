@@ -42,6 +42,7 @@
 .\output\malloc.o: .\User\SYSTEM\delay.h
 .\output\malloc.o: .\User\SYSTEM\debug_uart.h
 .\output\malloc.o: .\User\main.h
+.\output\malloc.o: .\User\HARDWARE\TIMER\Timer.h
 .\output\malloc.o: .\User\HARDWARE\TIMER\Timer6.h
 .\output\malloc.o: .\User\HARDWARE\LED\Led.h
 .\output\malloc.o: .\User\HARDWARE\BEEP\Beep.h
@@ -63,5 +64,4 @@
 .\output\malloc.o: .\User\HARDWARE\SSD1961\SSD1961.h
 .\output\malloc.o: .\User\HARDWARE\UI\UI.h
 .\output\malloc.o: .\User\HARDWARE\OUTPUT\Output.h
-.\output\malloc.o: .\User\HARDWARE\TIMER\Timer2.h
 .\output\malloc.o: .\User\HARDWARE\WDG\Wdg.h

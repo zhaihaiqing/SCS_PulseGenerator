@@ -21,7 +21,8 @@
 #define pTRIGGER_OUT	PBout(1)
 
 #if(PCB_VERSION >= PCB_15)
-	#define pTRIGGER_PWM	PBin(15)
+	//#define pTRIGGER_PWM	PBin(15)
+	#define pTRIGGER_PWM	PBin(2)
 	
 	#define UPDATE_NO	0	//不更新
 	#define UPDATE_ALL	1	//更新全部参数，包括不论是否在运行状态的PSC ARR CCRX AMPL等参数
@@ -31,6 +32,16 @@
 	void PWM_EXTI15_IRQHandler(void);
 #endif
 
+extern __IO unsigned int ex_bnc_flag;
+
+
+
+void TriggerExIN01_Init(void);
+void TriggerExIN23_Init(void);
+void TriggerOUT_Init(void);
+
 void TriggerEx_Init(void);
+
+
 
 #endif

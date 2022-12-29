@@ -15,7 +15,11 @@
 #define OUTPUT_DISABLE	0
 #define OUTPUT_ENABLE	1
 
-void Output_VorC(uint8_t select_vc, uint64_t ampl, uint8_t IsEnable);
+void Output_VorC(uint8_t select_vc, int64_t ampl, uint8_t IsEnable);
+
+//void EXIT2_Init(void);
+
+//extern volatile unsigned char EXIT2_Egde_Count;
 
 #if(TEST_OUTPUT)
 	#define TEST_VOLT_L		0

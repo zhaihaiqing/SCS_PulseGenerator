@@ -39,6 +39,6 @@ extern sTimer2_t T2;
 #define ARR_10US	71
 #define PSC_10US	9
 
-void Timer2_Init(u16 arr, u16 psc);
+void Timer2_Init(u32 arr,u16 psc);
 
 #endif
